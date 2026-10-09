@@ -1,10 +1,20 @@
 import { Routes } from '@angular/router';
 import { PassengerLayout } from './layouts/passenger-layout/passenger-layout';
+import { AuthLayout } from './layouts/auth-layout/auth-layout';
+import { Login } from './features/auth/login/login';
 import { Mapa } from './features/pasajero/mapa/mapa/mapa';
 //import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'pasajero/mapa', pathMatch: 'full' },
+   {
+    path: 'auth',
+    component: AuthLayout,
+    children: [
+      { path: 'login', component: Login },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+    ]
+  },
   {
     path: 'pasajero',
     component: PassengerLayout,
