@@ -4,6 +4,7 @@ import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { Mapa } from './features/pasajero/mapa/mapa/mapa';
+import { PncVerification } from './features/auth/pnc-verification/pnc-verification';
 //import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
@@ -14,6 +15,7 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: Login },
       { path: 'register', component: Register },
+      { path: 'pnc', component: PncVerification },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
     ]
   },
