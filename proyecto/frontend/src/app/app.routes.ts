@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { PassengerLayout } from './layouts/passenger-layout/passenger-layout';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { Login } from './features/auth/login/login';
+import { Register } from './features/auth/register/register';
 import { Mapa } from './features/pasajero/mapa/mapa/mapa';
 //import { authGuard } from './core/guards/auth-guard';
 
@@ -12,6 +13,7 @@ export const routes: Routes = [
     component: AuthLayout,
     children: [
       { path: 'login', component: Login },
+      { path: 'register', component: Register },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
     ]
   },
