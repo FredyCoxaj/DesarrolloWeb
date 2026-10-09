@@ -5,11 +5,13 @@ import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { Mapa } from './features/pasajero/mapa/mapa/mapa';
 import { PncVerification } from './features/auth/pnc-verification/pnc-verification';
+import { RutasList } from './features/pasajero/rutas/rutas-list/rutas-list';
+import { RutaDetail } from './features/pasajero/rutas/ruta-detail/ruta-detail';
 //import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'pasajero/mapa', pathMatch: 'full' },
-   {
+  {
     path: 'auth',
     component: AuthLayout,
     children: [
@@ -25,6 +27,8 @@ export const routes: Routes = [
     //canActivate: [authGuard],
     children: [
       { path: 'mapa', component: Mapa },
+      { path: 'rutas', component: RutasList },
+      { path: 'rutas/:id', component: RutaDetail },
       { path: '', redirectTo: 'mapa', pathMatch: 'full' },
     ]
   },
