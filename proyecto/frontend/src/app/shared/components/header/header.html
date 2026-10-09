@@ -1,0 +1,24 @@
+<header class="bg-primary text-white px-4 py-3 flex items-center justify-between shadow-md">
+  <div class="flex items-center gap-2">
+    <div class="bg-white text-primary rounded-lg w-9 h-9 flex items-center justify-center font-bold">
+      RB
+    </div>
+    <div>
+      <h1 class="text-base font-bold leading-tight">RutaBus GT</h1>
+      <p class="text-xs text-blue-100">Amatitlán & Sur</p>
+    </div>
+  </div>
+
+  @if (user()) {
+    <div class="flex items-center gap-2">
+      @if (user()!.dpiVerificado) {
+        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+          DPI ✓
+        </span>
+      }
+      <button class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">
+        Cambiar
+      </button>
+    </div>
+  }
+</header>
