@@ -4,3 +4,6 @@ export * from './trip.model';
 export * from './ticket.model';
 export * from './bus.model';
 export * from './notification.model';
+export * from './gps.model';
+export * from './incident.model';
+export * from './alert.model';

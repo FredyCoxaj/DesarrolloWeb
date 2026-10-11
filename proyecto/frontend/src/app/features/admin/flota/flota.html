@@ -1,0 +1,244 @@
+<div class="space-y-6">
+  <!-- Header de Flota - Modo Claro -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <span>🚍</span> Gestión del Parque de Buses (Flota)
+      </h2>
+      <p class="text-xs text-gray-500">
+        Administra las unidades disponibles, capacidad de asientos y estado mecánico
+      </p>
+    </div>
+
+    <button
+      (click)="openNewBusModal()"
+      class="px-4 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
+    >
+      <span>+ Registrar Nueva Unidad</span>
+    </button>
+  </div>
+
+  <!-- Grid de Unidades de la Flota -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (bus of buses(); track bus.id) {
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-blue-200 transition-all flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-lg font-black text-primary tracking-wider">
+              {{ bus.placa }}
+            </span>
+            <span
+              class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full"
+              [ngClass]="{
+                'bg-emerald-50 text-emerald-700 border border-emerald-200': bus.estado === 'ACTIVO',
+                'bg-amber-50 text-amber-700 border border-amber-200': bus.estado === 'MANTENIMIENTO',
+                'bg-rose-50 text-rose-700 border border-rose-200': bus.estado === 'FUERA_SERVICIO'
+              }"
+            >
+              {{ bus.estado }}
+            </span>
+          </div>
+
+          <h3 class="text-sm font-bold text-gray-900 mb-1">{{ bus.modelo }}</h3>
+          <p class="text-xs text-gray-500 mb-4">Año de fabricación: {{ bus.anio }}</p>
+
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 grid grid-cols-2 gap-2 text-xs mb-4">
+            <div>
+              <span class="text-gray-500 text-[10px] block">Capacidad:</span>
+              <span class="font-bold text-gray-900">{{ bus.capacidad }} Asientos</span>
+            </div>
+            <div>
+              <span class="text-gray-500 text-[10px] block">Disposición:</span>
+              <span class="font-bold text-primary">Configuración 2+2</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+          <button
+            (click)="viewSeats(bus)"
+            class="flex-1 py-1.5 px-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
+          >
+            <span>💺</span> Ver Asientos
+          </button>
+          <button
+            (click)="openEditBusModal(bus)"
+            class="py-1.5 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-primary border border-blue-200 text-xs font-bold transition-all cursor-pointer"
+          >
+            Editar
+          </button>
+          <button
+            (click)="deleteBus(bus.id)"
+            class="py-1.5 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all cursor-pointer"
+          >
+            Baja
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- MODAL CREAR / EDITAR BUS (F11) - MODO CLARO -->
+@if (showModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-gray-800">
+      <button
+        (click)="closeModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-base"
+      >
+        ✕
+      </button>
+
+      <h3 class="text-base font-bold text-gray-900 mb-1">
+        {{ isEditing() ? 'Editar Unidad de Bus' : 'Registrar Nueva Unidad' }}
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">
+        Ingresa los datos técnicos y operacionales del bus.
+      </p>
+
+      <div class="space-y-3.5 mb-5 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Placa Oficial:</label>
+          <input
+            type="text"
+            [(ngModel)]="formPlaca"
+            placeholder="Ej: M-505MNO"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary uppercase shadow-sm"
+          />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Modelo / Marca:</label>
+          <input
+            type="text"
+            [(ngModel)]="formModelo"
+            placeholder="Ej: Mercedes-Benz Sprinter 516"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Año:</label>
+            <input
+              type="number"
+              [(ngModel)]="formAnio"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            />
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Capacidad:</label>
+            <input
+              type="number"
+              [(ngModel)]="formCapacidad"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Estado Operativo:</label>
+          <select
+            [(ngModel)]="formEstado"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          >
+            <option value="ACTIVO">ACTIVO - En servicio comercial</option>
+            <option value="MANTENIMIENTO">MANTENIMIENTO - En taller mecánico</option>
+            <option value="FUERA_SERVICIO">FUERA_SERVICIO - Fuera de circulación</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="saveBus()"
+          class="flex-1 py-2 rounded-xl bg-primary hover:bg-blue-800 text-white text-xs font-bold shadow-md cursor-pointer"
+        >
+          {{ isEditing() ? 'Guardar Cambios' : 'Registrar Bus' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL MAPA VISUAL DE ASIENTOS 2+2 (F11) - MODO CLARO -->
+@if (selectedBusForSeats()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative text-gray-800">
+      <button
+        (click)="closeSeatsModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-base"
+      >
+        ✕
+      </button>
+
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-2xl">💺</span>
+        <h3 class="text-base font-bold text-gray-900">Mapa de Asientos 2+2</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">
+        Disposición física de la unidad <strong class="text-primary">{{ selectedBusForSeats()!.placa }}</strong> ({{ selectedBusForSeats()!.capacidad }} plazas).
+      </p>
+
+      <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 max-h-80 overflow-y-auto">
+        <div class="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-200 pb-1">
+          Frente / Cabina Conductor 👨‍✈️
+        </div>
+
+        <div class="space-y-2">
+          @for (row of getSeatRows(selectedBusForSeats()!.capacidad); track row) {
+            <div class="flex items-center justify-between px-2">
+              <!-- Lado Izquierdo (2 Asientos) -->
+              <div class="flex items-center gap-1.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-primary flex items-center justify-center text-[10px] font-bold">
+                  {{ row * 4 + 1 }}
+                </span>
+                @if (row * 4 + 2 <= selectedBusForSeats()!.capacidad) {
+                  <span class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-primary flex items-center justify-center text-[10px] font-bold">
+                    {{ row * 4 + 2 }}
+                  </span>
+                }
+              </div>
+
+              <!-- Pasillo -->
+              <div class="text-[9px] text-gray-400 font-mono">||</div>
+
+              <!-- Lado Derecho (2 Asientos) -->
+              <div class="flex items-center gap-1.5">
+                @if (row * 4 + 3 <= selectedBusForSeats()!.capacidad) {
+                  <span class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-primary flex items-center justify-center text-[10px] font-bold">
+                    {{ row * 4 + 3 }}
+                  </span>
+                }
+                @if (row * 4 + 4 <= selectedBusForSeats()!.capacidad) {
+                  <span class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-primary flex items-center justify-center text-[10px] font-bold">
+                    {{ row * 4 + 4 }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="mt-4 text-center">
+        <button
+          type="button"
+          (click)="closeSeatsModal()"
+          class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl cursor-pointer"
+        >
+          Cerrar Visualizador
+        </button>
+      </div>
+    </div>
+  </div>
+}

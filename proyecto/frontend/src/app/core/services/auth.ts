@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { Api } from './api';
-import { AuthResponseDto, LoginDto, RegisterDto, User } from '../models';
+import { AuthResponseDto, LoginDto, RegisterDto, User, UserRole } from '../models';
 import { environment } from '../../../environments/environment';
 
 const TOKEN_KEY = 'rutabus_token';
@@ -48,6 +48,23 @@ export class Auth {
     return this.currentUser()?.rol === role;
   }
 
+  switchRole(role: UserRole) {
+    const current = this.currentUser() || {
+      id: 'usr-1',
+      dpi: '2541893200101',
+      nombre: 'Renato Usuario',
+      email: 'renato@rutabus.gt',
+      rol: role,
+      dpiVerificado: true,
+    };
+    const updated: User = { ...current, rol: role };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    if (!this.getToken()) {
+      localStorage.setItem(TOKEN_KEY, 'mock-jwt-token-track-c');
+    }
+    this.currentUser.set(updated);
+  }
+
   private saveSession(res: AuthResponseDto) {
     localStorage.setItem(TOKEN_KEY, res.accessToken);
     localStorage.setItem(REFRESH_KEY, res.refreshToken);
@@ -57,6 +74,15 @@ export class Auth {
 
   private loadUserFromStorage(): User | null {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (raw) return JSON.parse(raw);
+    // En entorno de desarrollo por defecto proveer usuario inicial verificado
+    return {
+      id: 'usr-1',
+      dpi: '2541893200101',
+      nombre: 'Renato (Dev)',
+      email: 'renato@rutabus.gt',
+      rol: 'CHOFER',
+      dpiVerificado: true,
+    };
   }
-}
+}

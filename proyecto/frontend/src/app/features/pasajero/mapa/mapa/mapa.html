@@ -23,7 +23,7 @@
     <div class="flex items-start justify-between mb-2">
       <div>
         <h3 class="font-bold text-gray-800">{{ selectedBus()!.placa }}</h3>
-        <p class="text-sm text-gray-500">{{ selectedBus()!.ruta }}</p>
+        <p class="text-sm text-gray-500">{{ selectedBus()!.rutaNombre }}</p>
       </div>
       <button
         (click)="cerrarDetalle()"
@@ -36,11 +36,11 @@
     <div class="grid grid-cols-3 gap-2 mt-3">
       <div class="text-center bg-gray-50 rounded-lg py-2">
         <p class="text-xs text-gray-500">ETA</p>
-        <p class="font-bold text-primary">{{ selectedBus()!.eta }} min</p>
+        <p class="font-bold text-primary">{{ selectedBus()!.etaMinutos }} min</p>
       </div>
       <div class="text-center bg-gray-50 rounded-lg py-2">
         <p class="text-xs text-gray-500">Ocupación</p>
-        <p class="font-bold text-primary">{{ selectedBus()!.ocupacion }}/40</p>
+        <p class="font-bold text-primary">{{ selectedBus()!.ocupacion }}/{{ selectedBus()!.capacidad }}</p>
       </div>
       <div class="text-center bg-gray-50 rounded-lg py-2">
         <p class="text-xs text-gray-500">Estado</p>

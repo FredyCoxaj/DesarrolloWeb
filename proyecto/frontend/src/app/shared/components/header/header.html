@@ -9,16 +9,12 @@
     </div>
   </div>
 
-  @if (user()) {
-    <div class="flex items-center gap-2">
-      @if (user()!.dpiVerificado) {
-        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-          DPI ✓
-        </span>
-      }
-      <button class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">
-        Cambiar
-      </button>
-    </div>
-  }
-</header>
+  <div class="flex items-center gap-2">
+    @if (user() && user()!.dpiVerificado) {
+      <span class="bg-emerald-500/90 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+        <span>✓</span> DPI
+      </span>
+    }
+    <app-role-switcher />
+  </div>
+</header>

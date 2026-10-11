@@ -1,0 +1,492 @@
+<div class="space-y-6">
+  <!-- Tarjeta Superior: Estado del Viaje y Controles (F4) - Modo Claro -->
+  <div class="bg-white border border-blue-100 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+    <div class="absolute -right-8 -top-8 w-36 h-36 bg-blue-50 rounded-full pointer-events-none"></div>
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+      <div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span
+            class="text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5"
+            [ngClass]="{
+              'bg-emerald-50 text-emerald-700 border border-emerald-200': trip().estado === 'EN_CURSO',
+              'bg-blue-50 text-primary border border-blue-200': trip().estado === 'PROGRAMADO',
+              'bg-gray-100 text-gray-600 border border-gray-200': trip().estado === 'FINALIZADO'
+            }"
+          >
+            @if (trip().estado === 'EN_CURSO') {
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            }
+            {{ trip().estado }}
+          </span>
+          <span class="text-xs text-gray-500 font-medium">Hora de salida: {{ trip().horaSalida }}</span>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <span>{{ trip().rutaNombre }}</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-600 mt-1">
+          Bus asignado: <strong class="text-primary font-bold">{{ trip().busPlaca }}</strong> · Capacidad total: {{ trip().capacidad }} asientos
+        </p>
+      </div>
+
+      <!-- Botones de Acción de Viaje (F4) y Reporte de Incidencias (F6) -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        @if (trip().estado === 'PROGRAMADO') {
+          <button
+            (click)="iniciarViaje()"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <span>▶ Iniciar Viaje</span>
+          </button>
+        }
+
+        @if (trip().estado === 'EN_CURSO') {
+          <button
+            (click)="finalizarViaje()"
+            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>⏹ Finalizar Viaje</span>
+          </button>
+        }
+
+        <button
+          (click)="openIncidentModal()"
+          class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+        >
+          <span>⚠️ Reportar Incidencia</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Métricas en Vivo / Telemetría (F4) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-gray-100 relative z-10">
+      <div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80">
+        <span class="text-[11px] text-gray-500 font-medium">Velocidad Actual</span>
+        <div class="text-lg sm:text-xl font-black text-gray-900 flex items-baseline gap-1 mt-0.5">
+          <span>{{ busPosition()?.velocidadKmh || 38 }}</span>
+          <span class="text-xs font-normal text-gray-500">km/h</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80">
+        <span class="text-[11px] text-gray-500 font-medium">ETA al Destino</span>
+        <div class="text-lg sm:text-xl font-black text-primary flex items-baseline gap-1 mt-0.5">
+          <span>{{ busPosition()?.etaMinutos || trip().etaDestinoMinutos }}</span>
+          <span class="text-xs font-normal text-gray-500">min</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80">
+        <span class="text-[11px] text-gray-500 font-medium">Ocupación a Bordo</span>
+        <div class="text-lg sm:text-xl font-black text-blue-600 flex items-baseline gap-1 mt-0.5">
+          <span>{{ trip().ocupacionActual }}</span>
+          <span class="text-xs font-normal text-gray-500">/ {{ trip().capacidad }}</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80">
+        <span class="text-[11px] text-gray-500 font-medium">Próxima Parada</span>
+        <div class="text-xs sm:text-sm font-bold text-gray-800 truncate mt-1">
+          {{ trip().siguienteParada }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de Mapa y Recorrido de Paradas -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Mini Mapa de Ruta en Vivo (F2, F4) -->
+    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🗺️</span>
+          <h3 class="text-sm font-bold text-gray-900">Monitoreo GPS en Vivo</h3>
+        </div>
+        <span class="text-[11px] text-primary font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+          Trayectoria activa
+        </span>
+      </div>
+      <div id="driver-mini-map" class="h-64 sm:h-72 w-full rounded-xl overflow-hidden border border-gray-200"></div>
+    </div>
+
+    <!-- Timeline de Paradas de la Ruta (F4) -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex flex-col">
+      <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+        <span>📍</span> Paradas del Viaje
+      </h3>
+
+      <div class="space-y-2.5 overflow-y-auto max-h-72 pr-1 flex-1">
+        @for (stop of trip().paradas; track stop.id) {
+          <div
+            class="p-2.5 rounded-xl border flex items-center justify-between transition-all"
+            [ngClass]="{
+              'bg-gray-50/70 border-gray-200 opacity-60': stop.estado === 'COMPLETADA',
+              'bg-blue-50 border-blue-300 shadow-sm ring-1 ring-blue-300': stop.estado === 'ACTUAL',
+              'bg-white border-gray-200': stop.estado === 'PENDIENTE'
+            }"
+          >
+            <div class="flex items-center gap-2.5">
+              <span
+                class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-800': stop.estado === 'COMPLETADA',
+                  'bg-primary text-white animate-pulse': stop.estado === 'ACTUAL',
+                  'bg-gray-100 text-gray-700': stop.estado === 'PENDIENTE'
+                }"
+              >
+                {{ stop.orden }}
+              </span>
+              <div>
+                <p class="text-xs font-bold text-gray-900 leading-snug">{{ stop.nombre }}</p>
+                <p class="text-[11px] text-gray-500">Est: {{ stop.horaEstimada }}</p>
+              </div>
+            </div>
+
+            <div class="text-right text-[11px]">
+              <span class="text-emerald-600 font-bold">+{{ stop.pasajerosSuben }} suben</span>
+              @if (stop.pasajerosBajan > 0) {
+                <span class="text-rose-600 font-bold block">-{{ stop.pasajerosBajan }} bajan</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Pasajeros y Cobro en Efectivo (F4, F5) -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+          <span>👥</span> Lista de Pasajeros por Asiento & Cobros
+        </h3>
+        <p class="text-xs text-gray-500">
+          Gestiona abordaje y cobra en efectivo a los pasajeros que suben a la unidad
+        </p>
+      </div>
+
+      <!-- Filtros y Búsqueda -->
+      <div class="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          placeholder="Buscar pasajero o asiento..."
+          [(ngModel)]="searchQuery"
+          class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary w-44"
+        />
+
+        <div class="flex rounded-xl bg-gray-100 p-1 border border-gray-200 text-xs">
+          <button
+            (click)="selectedFilter.set('TODOS')"
+            class="px-2.5 py-1 rounded-lg font-medium transition-all"
+            [class.bg-white]="selectedFilter() === 'TODOS'"
+            [class.text-primary]="selectedFilter() === 'TODOS'"
+            [class.shadow-sm]="selectedFilter() === 'TODOS'"
+            [class.text-gray-600]="selectedFilter() !== 'TODOS'"
+          >
+            Todos
+          </button>
+          <button
+            (click)="selectedFilter.set('PENDIENTES')"
+            class="px-2.5 py-1 rounded-lg font-medium transition-all"
+            [class.bg-amber-400]="selectedFilter() === 'PENDIENTES'"
+            [class.text-slate-900]="selectedFilter() === 'PENDIENTES'"
+            [class.font-bold]="selectedFilter() === 'PENDIENTES'"
+            [class.text-gray-600]="selectedFilter() !== 'PENDIENTES'"
+          >
+            Por Cobrar
+          </button>
+          <button
+            (click)="selectedFilter.set('PAGADOS')"
+            class="px-2.5 py-1 rounded-lg font-medium transition-all"
+            [class.bg-emerald-600]="selectedFilter() === 'PAGADOS'"
+            [class.text-white]="selectedFilter() === 'PAGADOS'"
+            [class.font-bold]="selectedFilter() === 'PAGADOS'"
+            [class.text-gray-600]="selectedFilter() !== 'PAGADOS'"
+          >
+            Pagados
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla / Lista de Pasajeros -->
+    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
+          <tr>
+            <th class="py-3 px-3.5">Asiento</th>
+            <th class="py-3 px-3.5">Pasajero</th>
+            <th class="py-3 px-3.5">Tramo (Subida → Bajada)</th>
+            <th class="py-3 px-3.5">Monto</th>
+            <th class="py-3 px-3.5">Estado de Pago</th>
+            <th class="py-3 px-3.5 text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          @for (p of filteredPasajeros(); track p.ticketId) {
+            <tr class="hover:bg-blue-50/40 transition-colors">
+              <td class="py-3 px-3.5">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 font-bold text-primary border border-blue-200">
+                  #{{ p.asiento }}
+                </span>
+              </td>
+              <td class="py-3 px-3.5">
+                <div class="font-bold text-gray-900">{{ p.nombre }}</div>
+                <div class="text-[11px] text-gray-500">Boleto: {{ p.ticketId }}</div>
+              </td>
+              <td class="py-3 px-3.5">
+                <span class="text-gray-700">{{ p.paradaSubida }}</span>
+                <span class="text-gray-400 mx-1">→</span>
+                <span class="text-primary font-semibold">{{ p.paradaBajada }}</span>
+              </td>
+              <td class="py-3 px-3.5 font-bold text-gray-900">
+                Q{{ p.monto.toFixed(2) }}
+              </td>
+              <td class="py-3 px-3.5">
+                @if (p.pagoEstado === 'PAGADO') {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span>✓</span> Pagado ({{ p.metodoPago }})
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    <span>⏳</span> Pendiente Efectivo
+                  </span>
+                }
+              </td>
+              <td class="py-3 px-3.5 text-right">
+                @if (p.pagoEstado === 'PENDIENTE') {
+                  <button
+                    (click)="openCashModal(p)"
+                    class="px-3 py-1.5 bg-primary hover:bg-blue-800 text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer"
+                  >
+                    💵 Cobrar
+                  </button>
+                } @else {
+                  <span class="text-emerald-700 text-xs font-semibold">Abordado</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="py-8 text-center text-gray-500">
+                No se encontraron pasajeros con el filtro seleccionado.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COBRO EN EFECTIVO (F5) - MODO CLARO -->
+@if (showCashModal() && cashTargetPassenger()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative text-gray-800">
+      <button
+        (click)="closeCashModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg font-bold"
+      >
+        ✕
+      </button>
+
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-2xl">💵</span>
+        <h3 class="text-base font-bold text-gray-900">Cobro en Efectivo</h3>
+      </div>
+
+      <p class="text-xs text-gray-600 mb-4">
+        Registrar cobro para el pasajero en el asiento
+        <strong class="text-primary">#{{ cashTargetPassenger()!.asiento }}</strong>.
+      </p>
+
+      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5 mb-4 text-xs">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Pasajero:</span>
+          <span class="text-gray-900 font-bold">{{ cashTargetPassenger()!.nombre }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Tramo:</span>
+          <span class="text-gray-700">{{ cashTargetPassenger()!.paradaSubida }} → {{ cashTargetPassenger()!.paradaBajada }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Tarifa oficial:</span>
+          <span class="text-primary font-black">Q{{ cashTargetPassenger()!.monto.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Monto recibido (GTQ):</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2 text-gray-500 font-bold text-sm">Q</span>
+          <input
+            type="number"
+            step="0.5"
+            [(ngModel)]="cashAmount"
+            class="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-3 py-2 text-gray-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          />
+        </div>
+      </div>
+
+      @if (paymentSuccessMsg()) {
+        <div class="mb-4 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs text-center font-bold">
+          {{ paymentSuccessMsg() }}
+        </div>
+      }
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="closeCashModal()"
+          class="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-all cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmCashPayment()"
+          class="flex-1 py-2 rounded-xl bg-primary hover:bg-blue-800 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+        >
+          Confirmar Cobro
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL REPORTAR INCIDENCIA (F6) - MODO CLARO -->
+@if (showIncidentModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-gray-800">
+      <button
+        (click)="closeIncidentModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg font-bold"
+      >
+        ✕
+      </button>
+
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-2xl">🚨</span>
+        <h3 class="text-base font-bold text-gray-900">Reportar Incidencia en Ruta</h3>
+      </div>
+      <p class="text-xs text-gray-600 mb-4">
+        Esta notificación se enviará de inmediato al panel de monitoreo de Administración.
+      </p>
+
+      <div class="space-y-3.5 mb-5 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Tipo de Incidencia:</label>
+          <select
+            [(ngModel)]="incidentType"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          >
+            <option value="TRAFICO">Tráfico Pesado / Bloqueo</option>
+            <option value="AVERIA">Avería Mecánica del Bus</option>
+            <option value="ACCIDENTE">Accidente Vial</option>
+            <option value="DESVIO">Desvío de Ruta Temporal</option>
+            <option value="OTRO">Otro Suceso</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Severidad:</label>
+          <div class="grid grid-cols-4 gap-2">
+            <button
+              type="button"
+              (click)="incidentSeverity = 'BAJA'"
+              class="py-1.5 rounded-lg border text-center font-bold text-[11px] cursor-pointer"
+              [class.bg-blue-50]="incidentSeverity === 'BAJA'"
+              [class.border-blue-400]="incidentSeverity === 'BAJA'"
+              [class.text-primary]="incidentSeverity === 'BAJA'"
+              [class.border-gray-200]="incidentSeverity !== 'BAJA'"
+              [class.text-gray-600]="incidentSeverity !== 'BAJA'"
+            >
+              Baja
+            </button>
+            <button
+              type="button"
+              (click)="incidentSeverity = 'MEDIA'"
+              class="py-1.5 rounded-lg border text-center font-bold text-[11px] cursor-pointer"
+              [class.bg-amber-50]="incidentSeverity === 'MEDIA'"
+              [class.border-amber-400]="incidentSeverity === 'MEDIA'"
+              [class.text-amber-800]="incidentSeverity === 'MEDIA'"
+              [class.border-gray-200]="incidentSeverity !== 'MEDIA'"
+              [class.text-gray-600]="incidentSeverity !== 'MEDIA'"
+            >
+              Media
+            </button>
+            <button
+              type="button"
+              (click)="incidentSeverity = 'ALTA'"
+              class="py-1.5 rounded-lg border text-center font-bold text-[11px] cursor-pointer"
+              [class.bg-orange-50]="incidentSeverity === 'ALTA'"
+              [class.border-orange-400]="incidentSeverity === 'ALTA'"
+              [class.text-orange-800]="incidentSeverity === 'ALTA'"
+              [class.border-gray-200]="incidentSeverity !== 'ALTA'"
+              [class.text-gray-600]="incidentSeverity !== 'ALTA'"
+            >
+              Alta
+            </button>
+            <button
+              type="button"
+              (click)="incidentSeverity = 'CRITICA'"
+              class="py-1.5 rounded-lg border text-center font-bold text-[11px] cursor-pointer"
+              [class.bg-rose-50]="incidentSeverity === 'CRITICA'"
+              [class.border-rose-400]="incidentSeverity === 'CRITICA'"
+              [class.text-rose-800]="incidentSeverity === 'CRITICA'"
+              [class.border-gray-200]="incidentSeverity !== 'CRITICA'"
+              [class.text-gray-600]="incidentSeverity !== 'CRITICA'"
+            >
+              Crítica
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Ubicación aproximada:</label>
+          <input
+            type="text"
+            [(ngModel)]="incidentLocation"
+            placeholder="Ej: CA-9 Sur km 28, cerca de Bárcenas"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Descripción de lo ocurrido:</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="incidentDesc"
+            placeholder="Detalla lo que sucede para que el equipo de soporte tome medidas..."
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          ></textarea>
+        </div>
+      </div>
+
+      @if (incidentSuccessMsg()) {
+        <div class="mb-4 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs text-center font-bold">
+          {{ incidentSuccessMsg() }}
+        </div>
+      }
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="closeIncidentModal()"
+          class="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="submitIncident()"
+          class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer"
+        >
+          Enviar Reporte
+        </button>
+      </div>
+    </div>
+  </div>
+}

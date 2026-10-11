@@ -1,0 +1,51 @@
+<div class="max-w-xl mx-auto space-y-6">
+  <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center relative overflow-hidden">
+    <div class="w-20 h-20 mx-auto rounded-full bg-blue-50 text-primary border-2 border-blue-200 flex items-center justify-center text-3xl font-bold shadow-sm mb-3">
+      👨‍✈️
+    </div>
+
+    <h2 class="text-xl font-black text-gray-900">{{ chofer().nombre }}</h2>
+    <p class="text-xs text-gray-500 mt-0.5">Chofer Profesional Certificado · RutaBus GT</p>
+
+    <div class="flex items-center justify-center gap-2 mt-3">
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        ★ {{ chofer().calificacion }} Calificación
+      </span>
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-primary border border-blue-200">
+        {{ chofer().viajesHoy }} Viajes Hoy
+      </span>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
+    <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Información del Conductor</h3>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+      <div>
+        <span class="text-gray-500">Documento DPI:</span>
+        <p class="text-gray-900 font-mono font-bold mt-0.5">{{ chofer().dpi }}</p>
+      </div>
+      <div>
+        <span class="text-gray-500">Licencia de Conducir:</span>
+        <p class="text-gray-900 font-semibold mt-0.5">{{ chofer().licencia }}</p>
+      </div>
+      <div>
+        <span class="text-gray-500">Teléfono móvil:</span>
+        <p class="text-gray-900 font-semibold mt-0.5">{{ chofer().telefono }}</p>
+      </div>
+      <div>
+        <span class="text-gray-500">Unidad Asignada:</span>
+        <p class="text-primary font-black mt-0.5">{{ chofer().busAsignado }}</p>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100">
+      <button
+        (click)="logout()"
+        class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+      >
+        <span>🚪</span> Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</div>

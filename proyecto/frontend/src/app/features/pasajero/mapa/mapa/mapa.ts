@@ -1,14 +1,6 @@
-import { Component, AfterViewInit, signal } from '@angular/core';
-
-interface BusMarker {
-  id: string;
-  placa: string;
-  ruta: string;
-  lat: number;
-  lng: number;
-  ocupacion: number;
-  eta: number;
-}
+import { Component, AfterViewInit, OnDestroy, signal, inject } from '@angular/core';
+import { GpsService } from '../../../../core/services/gps.service';
+import { GpsPosition } from '../../../../core/models';
 
 @Component({
   selector: 'app-mapa',
@@ -17,17 +9,15 @@ interface BusMarker {
   templateUrl: './mapa.html',
   styleUrl: './mapa.scss'
 })
-export class Mapa implements AfterViewInit {
+export class Mapa implements AfterViewInit, OnDestroy {
+  private gps = inject(GpsService);
   private map: any;
-  private busMarkers: any[] = [];
+  private markersMap = new Map<string, any>();
+  private updateInterval: any = null;
 
-  buses = signal<BusMarker[]>([
-    { id: 'b1', placa: 'M-101ABC', ruta: 'Amatitlán → Villa Nueva', lat: 14.4769, lng: -90.6347, ocupacion: 12, eta: 5 },
-    { id: 'b2', placa: 'M-202DEF', ruta: 'Villa Nueva → Zona 12', lat: 14.5250, lng: -90.5870, ocupacion: 28, eta: 12 },
-    { id: 'b3', placa: 'M-303GHI', ruta: 'Amatitlán → Mixco', lat: 14.5010, lng: -90.6120, ocupacion: 8, eta: 18 },
-  ]);
-
-  selectedBus = signal<BusMarker | null>(null);
+  // Buses reactivos desde el GpsService de Renato (Track C)
+  buses = this.gps.buses;
+  selectedBus = signal<GpsPosition | null>(null);
 
   ngAfterViewInit() {
     // Importar Leaflet dinámicamente para evitar problemas con SSR
@@ -42,7 +32,7 @@ export class Mapa implements AfterViewInit {
       });
 
       leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
+        attribution: '© OpenStreetMap · Telemetría en Vivo',
         maxZoom: 19,
       }).addTo(this.map);
 
@@ -64,12 +54,30 @@ export class Mapa implements AfterViewInit {
         });
       }
 
-      // Agregar marcadores de buses
-      this.renderBusMarkers(leaflet);
+      // Agregar y sincronizar marcadores de buses en vivo
+      this.syncBusMarkers(leaflet);
+
+      // Actualizar periódicamente sin destruir el mapa (F2)
+      this.updateInterval = setInterval(() => {
+        this.syncBusMarkers(leaflet);
+      }, 3000);
     });
   }
 
-  private renderBusMarkers(L: any) {
+  ngOnDestroy() {
+    if (this.updateInterval) clearInterval(this.updateInterval);
+    if (this.map) {
+      try {
+        this.map.remove();
+      } catch {
+        // safe cleanup
+      }
+    }
+  }
+
+  private syncBusMarkers(L: any) {
+    if (!this.map) return;
+
     this.buses().forEach((bus) => {
       const icon = L.divIcon({
         className: 'bus-marker',
@@ -78,11 +86,15 @@ export class Mapa implements AfterViewInit {
         iconAnchor: [18, 18],
       });
 
-      const marker = L.marker([bus.lat, bus.lng], { icon })
-        .addTo(this.map)
-        .on('click', () => this.selectedBus.set(bus));
-
-      this.busMarkers.push(marker);
+      let marker = this.markersMap.get(bus.busId);
+      if (marker) {
+        marker.setLatLng([bus.lat, bus.lng]);
+      } else {
+        marker = L.marker([bus.lat, bus.lng], { icon })
+          .addTo(this.map)
+          .on('click', () => this.selectedBus.set(bus));
+        this.markersMap.set(bus.busId, marker);
+      }
     });
   }
 
