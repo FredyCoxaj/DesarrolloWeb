@@ -1,56 +1,70 @@
-# compiled output
-/dist
-/node_modules
-/build
+# ============================================
+# RutaBus GT - .gitignore (monorepo)
+# ============================================
 
-# Logs
-logs
+# ============ DEPENDENCIAS ============
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# ============ BUILDS ============
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# ============ ENVIRONMENT (¡CRÍTICO!) ============
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# ============ LOGS ============
+logs/
 *.log
 npm-debug.log*
-pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 lerna-debug.log*
 
-# OS
-.DS_Store
+# ============ TESTS ============
+coverage/
+.nyc_output/
 
-# Tests
-/coverage
-/.nyc_output
-
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# IDE - VSCode
+# ============ IDE ============
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.settings/
+.project
+.classpath
+.c9/
+*.launch
+.sublime-workspace
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# ============ OS ============
+.DS_Store
+Thumbs.db
 
-# temp directory
-.temp
-.tmp
+# ============ PRISMA ============
+backend/prisma/migrations/**/migration_lock.toml
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# ============ ANGULAR ============
+frontend/.angular/
+frontend/dist/
+frontend/node_modules/
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+# ============ OTROS ============
+*.tmp
+*.temp
