@@ -4,9 +4,15 @@ import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { Mapa } from './features/pasajero/mapa/mapa/mapa';
+
+import { BoletosList } from './features/pasajero/boletos/boletos-list/boletos-list';
+import { BoletosDetail } from './features/pasajero/boletos/boletos-detail/boletos-detail';
 import { PncVerification } from './features/auth/pnc-verification/pnc-verification';
 import { RutasList } from './features/pasajero/rutas/rutas-list/rutas-list';
 import { RutaDetail } from './features/pasajero/rutas/ruta-detail/ruta-detail';
+import { Reserva } from './features/pasajero/reserva/reserva';
+import { Avisos } from './features/pasajero/avisos/avisos';
+import { Perfil } from './features/pasajero/perfil/perfil';
 
 // Layouts Track C (Renato)
 import { ChoferLayout } from './layouts/chofer-layout/chofer-layout';
@@ -45,7 +51,13 @@ export const routes: Routes = [
       { path: 'mapa', component: Mapa },
       { path: 'rutas', component: RutasList },
       { path: 'rutas/:id', component: RutaDetail },
+      { path: 'reserva/:id', component: Reserva },
+      { path: 'boletos', component: BoletosList },
+      { path: 'boletos/:id', component: BoletosDetail },
+      { path: 'avisos', component: Avisos },
+      { path: 'perfil', component: Perfil },
       { path: '', redirectTo: 'mapa', pathMatch: 'full' },
+      
     ],
   },
   // Track C: Módulo Chofer (F3, F4, F5, F6, F7)

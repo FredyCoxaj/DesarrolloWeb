@@ -1,0 +1,215 @@
+@if (notFound()) {
+  <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+    <p class="text-gray-400 text-3xl mb-2">🚫</p>
+    <p class="text-gray-500">Ruta no encontrada</p>
+    <a routerLink="/pasajero/rutas" class="text-primary font-semibold hover:underline text-sm mt-2 inline-block">
+      ← Volver a rutas
+    </a>
+  </div>
+}
+
+@if (route() && !notFound()) {
+
+  <!-- Barra de progreso -->
+  <div class="mb-4">
+    <div class="flex items-center justify-between mb-2">
+      @for (s of [1,2,3,4]; track s) {
+        <div class="flex-1 flex items-center">
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition"
+            [class.bg-primary]="step() >= s"
+            [class.text-white]="step() >= s"
+            [class.bg-gray-200]="step() < s"
+            [class.text-gray-500]="step() < s"
+          >
+            @if (step() > s) { ✓ } @else { {{ s }} }
+          </div>
+          @if (s < 4) {
+            <div
+              class="flex-1 h-1 mx-1 transition"
+              [class.bg-primary]="step() > s"
+              [class.bg-gray-200]="step() <= s"
+            ></div>
+          }
+        </div>
+      }
+    </div>
+    <div class="flex justify-between text-xs text-gray-500">
+      <span>Paradas</span>
+      <span>Asiento</span>
+      <span>Pago</span>
+      <span>QR</span>
+    </div>
+  </div>
+
+  <!-- PASO 1: Paradas -->
+  @if (step() === 1) {
+    <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
+      <h3 class="font-semibold text-gray-700 mb-3">Selecciona tu recorrido</h3>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Subes en</label>
+          <select
+            [ngModel]="boardingStopId()"
+            (ngModelChange)="boardingStopId.set($event)"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            @for (parada of route()!.paradas; track parada.id) {
+              <option [value]="parada.id">{{ parada.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Bajas en</label>
+          <select
+            [ngModel]="alightingStopId()"
+            (ngModelChange)="alightingStopId.set($event)"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            @for (parada of route()!.paradas; track parada.id) {
+              <option [value]="parada.id">{{ parada.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        @if (!puedeContinuarPaso1) {
+          <p class="text-xs text-red-500">Subida y bajada deben ser diferentes</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 shadow-sm mb-24">
+      <h3 class="font-semibold text-gray-700 mb-3">Recorrido</h3>
+      <div
+        id="reserva-map"
+        class="w-full rounded-lg overflow-hidden"
+        style="height: 260px; z-index: 1;">
+      </div>
+    </div>
+  }
+
+  <!-- PASO 2: Asiento -->
+  @if (step() === 2) {
+    <app-seat-map
+      [totalSeats]="40"
+      [occupiedSeats]="occupiedSeats"
+      (seatSelected)="onSeatSelected($event)"
+    />
+  }
+
+  <!-- PASO 3: Pago -->
+  @if (step() === 3) {
+    <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
+      <h3 class="font-semibold text-gray-700 mb-3">Resumen</h3>
+
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Ruta</span>
+          <span class="font-medium">{{ route()!.nombre }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Asiento</span>
+          <span class="font-medium">#{{ selectedSeat() }}</span>
+        </div>
+        <div class="border-t border-gray-100 pt-2 mt-2 flex justify-between">
+          <span class="font-semibold">Total</span>
+          <span class="font-bold text-primary text-lg">Q{{ precioTramo.toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 shadow-sm mb-24">
+      <h3 class="font-semibold text-gray-700 mb-3">Método de pago</h3>
+
+      <div class="space-y-2">
+        @for (method of [
+          { value: 'EFECTIVO', label: 'Efectivo al abordar', icon: '💵' },
+          { value: 'TARJETA', label: 'Tarjeta', icon: '💳' },
+          { value: 'CUENTA', label: 'Cuenta bancaria', icon: '🏦' }
+        ]; track method.value) {
+          <label
+            class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition"
+            [class.border-primary]="paymentMethod() === method.value"
+            [class.bg-blue-50]="paymentMethod() === method.value"
+            [class.border-gray-200]="paymentMethod() !== method.value"
+          >
+            <input
+              type="radio"
+              name="payment"
+              [value]="method.value"
+              [checked]="paymentMethod() === method.value"
+              (change)="paymentMethod.set($any(method.value))"
+              class="hidden"
+            />
+            <span class="text-2xl">{{ method.icon }}</span>
+            <span class="font-medium text-sm">{{ method.label }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- PASO 4: QR -->
+  @if (step() === 4) {
+    <div class="bg-white rounded-xl p-6 shadow-sm text-center mb-24">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-3">
+        <span class="text-3xl text-green-600">✓</span>
+      </div>
+      <h3 class="text-lg font-bold text-green-700">¡Reserva confirmada!</h3>
+      <p class="text-sm text-gray-500 mt-1">Muestra este QR al abordar</p>
+
+      @if (qrDataUrl()) {
+        <div class="my-6 flex justify-center">
+          <img [src]="qrDataUrl()!" alt="QR de abordaje" class="rounded-xl border-4 border-primary" />
+        </div>
+      }
+
+      <div class="bg-gray-50 rounded-lg p-3 text-left">
+        <p class="text-xs text-gray-500">Ticket</p>
+        <p class="font-mono font-bold text-primary text-sm">{{ ticketId() }}</p>
+
+        <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+          <div>
+            <p class="text-gray-500">Asiento</p>
+            <p class="font-bold">#{{ selectedSeat() }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Total</p>
+            <p class="font-bold">Q{{ precioTramo.toFixed(2) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        (click)="irAlMapa()"
+        class="w-full bg-primary text-white font-semibold py-3 rounded-lg mt-5 hover:bg-blue-800 transition"
+      >
+        Volver al mapa
+      </button>
+    </div>
+  }
+
+  <!-- Barra de acciones fija -->
+  @if (step() < 4) {
+    <div class="fixed bottom-20 left-4 right-4 z-[1000] flex gap-2">
+      @if (step() > 1) {
+        <button
+          (click)="prevStep()"
+          class="bg-white text-primary font-semibold py-3 px-5 rounded-xl shadow-lg border-2 border-primary"
+        >
+          ←
+        </button>
+      }
+      <button
+        (click)="nextStep()"
+        [disabled]="step() === 1 && !puedeContinuarPaso1 || step() === 2 && !selectedSeat()"
+        class="flex-1 bg-primary text-white font-semibold py-3 rounded-xl shadow-lg hover:bg-blue-800 transition disabled:opacity-50"
+      >
+        @if (step() === 3) { Confirmar reserva }
+        @else { Continuar → }
+      </button>
+    </div>
+  }
+}

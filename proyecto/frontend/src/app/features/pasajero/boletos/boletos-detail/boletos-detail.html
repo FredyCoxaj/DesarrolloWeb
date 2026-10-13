@@ -1,0 +1,117 @@
+@if (notFound()) {
+  <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+    <p class="text-gray-400 text-3xl mb-2">🚫</p>
+    <p class="text-gray-500">Ticket no encontrado</p>
+    <a routerLink="/pasajero/boletos" class="text-primary font-semibold hover:underline text-sm mt-2 inline-block">
+      ← Volver a boletos
+    </a>
+  </div>
+}
+
+@if (ticket()) {
+  <button
+    (click)="volver()"
+    class="text-sm text-primary font-semibold mb-3 inline-block"
+  >
+    ← Volver
+  </button>
+
+  <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+
+    <div
+      class="px-4 py-3 text-white text-center"
+      [class.bg-primary]="ticket()!.estado === 'RESERVADO' || ticket()!.estado === 'PAGADO'"
+      [class.bg-green-600]="ticket()!.estado === 'ABORDADO'"
+      [class.bg-gray-500]="ticket()!.estado === 'CANCELADO'"
+    >
+      <p class="text-xs opacity-90">Estado</p>
+      <p class="font-bold text-lg">{{ estadoLabel(ticket()!.estado) }}</p>
+    </div>
+
+    @if (ticket()!.qrDataUrl && ticket()!.estado !== 'CANCELADO') {
+      <div class="p-6 flex justify-center bg-gray-50">
+        <img
+          [src]="ticket()!.qrDataUrl!"
+          alt="QR de abordaje"
+          class="rounded-xl border-4 border-primary bg-white"
+          style="width: 220px; height: 220px;"
+        />
+      </div>
+    } @else if (ticket()!.estado === 'CANCELADO') {
+      <div class="p-8 flex justify-center bg-gray-100">
+        <div class="text-center">
+          <p class="text-5xl mb-2 opacity-40">🚫</p>
+          <p class="text-gray-500 text-sm">Ticket cancelado</p>
+        </div>
+      </div>
+    }
+
+    <div class="p-4 space-y-3">
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Ticket</span>
+        <span class="font-mono font-bold text-primary text-xs">{{ ticket()!.id }}</span>
+      </div>
+
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Ruta</span>
+        <span class="font-medium text-right">{{ ticket()!.routeName }}</span>
+      </div>
+
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Subida</span>
+        <span class="font-medium text-right">{{ ticket()!.boardingStopName }}</span>
+      </div>
+
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Bajada</span>
+        <span class="font-medium text-right">{{ ticket()!.alightingStopName }}</span>
+      </div>
+
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Asiento</span>
+        <span class="font-bold text-primary">#{{ ticket()!.asiento }}</span>
+      </div>
+
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-500">Fecha</span>
+        <span class="font-medium text-right text-xs">{{ formatFecha(ticket()!.fecha) }}</span>
+      </div>
+
+      <div class="border-t border-gray-100 pt-3 flex justify-between">
+        <span class="font-semibold text-gray-700">Total</span>
+        <span class="font-bold text-primary text-lg">Q{{ ticket()!.precio.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  @if (puedeCancelar) {
+    @if (!showCancelConfirm()) {
+      <button
+        (click)="showCancelConfirm.set(true)"
+        class="w-full bg-white border-2 border-red-400 text-red-500 font-semibold py-3 rounded-xl mb-24 hover:bg-red-50 transition"
+      >
+        Cancelar ticket
+      </button>
+    } @else {
+      <div class="bg-white border-2 border-red-400 rounded-xl p-4 mb-24">
+        <p class="text-sm text-gray-700 mb-3 text-center">
+          ¿Seguro que quieres cancelar este ticket?
+        </p>
+        <div class="flex gap-2">
+          <button
+            (click)="showCancelConfirm.set(false)"
+            class="flex-1 bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg"
+          >
+            No
+          </button>
+          <button
+            (click)="confirmarCancelacion()"
+            class="flex-1 bg-red-500 text-white font-semibold py-2 rounded-lg"
+          >
+            Sí, cancelar
+          </button>
+        </div>
+      </div>
+    }
+  }
+}
