@@ -8,9 +8,10 @@ import { RoutesModule } from './routes/routes.module';
 import { BusesModule } from './buses/buses.module';
 import { TripsModule } from './trips/trips.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { UsersModule } from './users/users.module';
+import { PaymentsModule } from './payments/payments.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     TripsModule,
     TicketsModule,
     UsersModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [
