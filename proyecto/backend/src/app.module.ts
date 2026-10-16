@@ -10,6 +10,7 @@ import { TripsModule } from './trips/trips.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { UsersModule } from './users/users.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminModule } from './admin/admin.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -23,6 +24,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     TicketsModule,
     UsersModule,
     PaymentsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
