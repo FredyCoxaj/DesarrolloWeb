@@ -1,0 +1,58 @@
+<div class="bg-white rounded-xl p-4 shadow-sm">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="font-semibold text-gray-700">Selecciona tu asiento</h3>
+    <div class="flex items-center gap-3 text-xs">
+      <span class="flex items-center gap-1">
+        <span class="w-3 h-3 bg-white border border-gray-300 rounded"></span> Libre
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="w-3 h-3 bg-gray-300 rounded"></span> Ocupado
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="w-3 h-3 bg-primary rounded"></span> Tuyo
+      </span>
+    </div>
+  </div>
+
+  <div class="text-center mb-3">
+    <div class="inline-block bg-gray-100 text-gray-500 text-xs px-4 py-1 rounded-full">
+      🚌 Frente
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    @for (row of rows; track $index) {
+      <div class="flex justify-center gap-2">
+        @for (seat of row; track seat.number) {
+          @if ($index === 2) {
+            <div class="w-4"></div>
+          }
+          <button
+            type="button"
+            (click)="selectSeat(seat)"
+            [disabled]="seat.occupied"
+            class="w-10 h-10 rounded-lg text-xs font-bold transition border-2"
+            [class.bg-white]="!seat.occupied && selectedSeat() !== seat.number"
+            [class.border-gray-300]="!seat.occupied && selectedSeat() !== seat.number"
+            [class.text-gray-700]="!seat.occupied && selectedSeat() !== seat.number"
+            [class.bg-gray-300]="seat.occupied"
+            [class.border-gray-300]="seat.occupied"
+            [class.text-gray-500]="seat.occupied"
+            [class.cursor-not-allowed]="seat.occupied"
+            [class.bg-primary]="selectedSeat() === seat.number"
+            [class.border-primary]="selectedSeat() === seat.number"
+            [class.text-white]="selectedSeat() === seat.number"
+          >
+            {{ seat.number }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (selectedSeat()) {
+    <p class="text-center text-sm text-gray-600 mt-4">
+      Asiento seleccionado: <span class="font-bold text-primary">#{{ selectedSeat() }}</span>
+    </p>
+  }
+</div>

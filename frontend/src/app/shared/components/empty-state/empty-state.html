@@ -1,0 +1,15 @@
+<div class="bg-white rounded-xl p-8 text-center shadow-sm animate-fade-in">
+  <p class="text-gray-300 text-5xl mb-3">{{ icon }}</p>
+  <h3 class="text-gray-700 font-semibold mb-1">{{ title }}</h3>
+  @if (message) {
+    <p class="text-gray-500 text-sm">{{ message }}</p>
+  }
+  @if (actionLabel) {
+    <button
+      (click)="actionClick.emit()"
+      class="mt-4 bg-primary text-white font-semibold px-5 py-2 rounded-lg text-sm hover:bg-blue-800 transition"
+    >
+      {{ actionLabel }}
+    </button>
+  }
+</div>

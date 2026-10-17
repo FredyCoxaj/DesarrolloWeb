@@ -1,0 +1,210 @@
+<div class="space-y-6">
+  <!-- Header de Choferes - Modo Claro -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <span>👨‍✈️</span> Personal de Conducción (Choferes)
+      </h2>
+      <p class="text-xs text-gray-500">
+        Gestión de conductores autorizados, asignación a unidades y licencias vigentes
+      </p>
+    </div>
+
+    <button
+      (click)="openNewModal()"
+      class="px-4 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
+    >
+      <span>+ Contratar / Registrar Chofer</span>
+    </button>
+  </div>
+
+  <!-- Tabla de Choferes -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
+          <tr>
+            <th class="py-3 px-3.5">Conductor</th>
+            <th class="py-3 px-3.5">DPI & Licencia</th>
+            <th class="py-3 px-3.5">Teléfono</th>
+            <th class="py-3 px-3.5">Bus Asignado</th>
+            <th class="py-3 px-3.5">Estado</th>
+            <th class="py-3 px-3.5">Viajes / Calificación</th>
+            <th class="py-3 px-3.5 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          @for (d of drivers(); track d.id) {
+            <tr class="hover:bg-blue-50/40 transition-colors">
+              <td class="py-3 px-3.5">
+                <div class="font-bold text-gray-900 flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-full bg-blue-50 text-primary flex items-center justify-center text-xs font-bold border border-blue-200">
+                    👨‍✈️
+                  </span>
+                  <span>{{ d.nombre }}</span>
+                </div>
+              </td>
+              <td class="py-3 px-3.5">
+                <div class="font-mono text-gray-800 text-[11px] font-bold">{{ d.dpi }}</div>
+                <div class="text-[10px] text-primary font-semibold">{{ d.licencia }}</div>
+              </td>
+              <td class="py-3 px-3.5 text-gray-700">
+                {{ d.telefono }}
+              </td>
+              <td class="py-3 px-3.5">
+                @if (d.busAsignadoPlaca) {
+                  <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-primary font-black text-xs">
+                    {{ d.busAsignadoPlaca }}
+                  </span>
+                } @else {
+                  <span class="text-gray-400 italic text-[11px]">Sin unidad</span>
+                }
+              </td>
+              <td class="py-3 px-3.5">
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-bold"
+                  [ngClass]="{
+                    'bg-emerald-50 text-emerald-700 border border-emerald-200': d.estado === 'EN_RUTA',
+                    'bg-blue-50 text-primary border border-blue-200': d.estado === 'DISPONIBLE',
+                    'bg-gray-100 text-gray-600 border border-gray-200': d.estado === 'DESCANSO'
+                  }"
+                >
+                  {{ d.estado }}
+                </span>
+              </td>
+              <td class="py-3 px-3.5">
+                <div class="text-gray-900 font-bold">{{ d.viajesCompletados }} viajes</div>
+                <div class="text-amber-500 text-[11px] font-semibold">★ {{ d.calificacion }}</div>
+              </td>
+              <td class="py-3 px-3.5 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    (click)="openEditModal(d)"
+                    class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-primary border border-blue-200 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteDriver(d.id)"
+                    class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Baja
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR / EDITAR CHOFER (F11) - MODO CLARO -->
+@if (showModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-gray-800">
+      <button
+        (click)="closeModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-base"
+      >
+        ✕
+      </button>
+
+      <h3 class="text-base font-bold text-gray-900 mb-1">
+        {{ isEditing() ? 'Editar Conductor' : 'Registrar Conductor' }}
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">
+        Ingresa los datos personales y asigna una unidad de transporte.
+      </p>
+
+      <div class="space-y-3.5 mb-5 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Nombre Completo:</label>
+          <input
+            type="text"
+            [(ngModel)]="formNombre"
+            placeholder="Ej: Edwin Ronaldo López"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">DPI (13 dígitos):</label>
+            <input
+              type="text"
+              [(ngModel)]="formDpi"
+              placeholder="2541 89320 0101"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            />
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Teléfono:</label>
+            <input
+              type="text"
+              [(ngModel)]="formTelefono"
+              placeholder="5543-9821"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Licencia:</label>
+            <select
+              [(ngModel)]="formLicencia"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            >
+              <option value="Tipo A">Tipo A (Profesional)</option>
+              <option value="Tipo B">Tipo B (Pesado)</option>
+              <option value="Tipo C">Tipo C (Liviano)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Bus Asignado:</label>
+            <select
+              [(ngModel)]="formBusAsignado"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            >
+              <option value="">Sin Asignar</option>
+              @for (b of buses(); track b.id) {
+                <option [value]="b.placa">{{ b.placa }} ({{ b.modelo }})</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Estado de Turno:</label>
+          <select
+            [(ngModel)]="formEstado"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+          >
+            <option value="DISPONIBLE">DISPONIBLE - Listo para turno</option>
+            <option value="EN_RUTA">EN_RUTA - En recorrido activo</option>
+            <option value="DESCANSO">DESCANSO - Fuera de turno</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="saveDriver()"
+          class="flex-1 py-2 rounded-xl bg-primary hover:bg-blue-800 text-white text-xs font-bold shadow-md cursor-pointer"
+        >
+          Guardar Conductor
+        </button>
+      </div>
+    </div>
+  </div>
+}

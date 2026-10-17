@@ -1,0 +1,169 @@
+<div class="space-y-6">
+  <!-- Header de Alertas - Modo Claro -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <span>🚨</span> Centro de Alertas & Notificaciones Operativas
+      </h2>
+      <p class="text-xs text-gray-500">
+        Monitoreo en vivo de buses detenidos, sobrecupos e incidencias emitidas por conductores
+      </p>
+    </div>
+
+    <!-- Filtros de Pestaña -->
+    <div class="flex items-center gap-2">
+      <div class="bg-white p-1 rounded-xl border border-gray-200 shadow-xs flex text-xs">
+        <button
+          (click)="filterTab.set('ALERTAS')"
+          class="px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+          [class.bg-primary]="filterTab() === 'ALERTAS'"
+          [class.text-white]="filterTab() === 'ALERTAS'"
+          [class.text-gray-600]="filterTab() !== 'ALERTAS'"
+        >
+          Alertas de Sistema ({{ alerts().length }})
+        </button>
+        <button
+          (click)="filterTab.set('INCIDENCIAS')"
+          class="px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+          [class.bg-primary]="filterTab() === 'INCIDENCIAS'"
+          [class.text-white]="filterTab() === 'INCIDENCIAS'"
+          [class.text-gray-600]="filterTab() !== 'INCIDENCIAS'"
+        >
+          Incidencias Choferes ({{ incidents().length }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (filterTab() === 'ALERTAS') {
+    <!-- Controles de Filtro para Alertas -->
+    <div class="flex items-center justify-between">
+      <label class="flex items-center gap-2 text-xs text-gray-600 font-semibold cursor-pointer">
+        <input
+          type="checkbox"
+          [checked]="onlyUnread()"
+          (change)="onlyUnread.set(!onlyUnread())"
+          class="rounded bg-white border-gray-300 text-primary focus:ring-primary"
+        />
+        <span>Mostrar solo alertas no leídas</span>
+      </label>
+      <span class="text-xs text-gray-400 font-medium">{{ filteredAlerts().length }} alertas mostradas</span>
+    </div>
+
+    <!-- Lista de Alertas del Sistema (F13) -->
+    <div class="space-y-3">
+      @for (alt of filteredAlerts(); track alt.id) {
+        <div
+          class="p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm bg-white"
+          [ngClass]="{
+            'border-rose-300 bg-rose-50/40': alt.severidad === 'DANGER' && !alt.resuelta,
+            'border-amber-300 bg-amber-50/40': alt.severidad === 'WARNING' && !alt.resuelta,
+            'border-blue-200 bg-blue-50/40': alt.severidad === 'INFO' && !alt.resuelta,
+            'border-gray-200 opacity-60 bg-gray-50/70': alt.resuelta
+          }"
+        >
+          <div class="flex items-start gap-3">
+            <span class="text-2xl mt-0.5">
+              @switch (alt.tipo) {
+                @case ('BUS_DETENIDO') { 🛑 }
+                @case ('SOBRECUPO') { ⚠️ }
+                @case ('INCIDENCIA') { 🚨 }
+                @default { ℹ️ }
+              }
+            </span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="text-sm font-bold text-gray-900">{{ alt.titulo }}</h4>
+                @if (!alt.leida) {
+                  <span class="px-2 py-0.5 rounded bg-primary text-white text-[9px] font-black uppercase shadow-xs">
+                    Nueva
+                  </span>
+                }
+                @if (alt.resuelta) {
+                  <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold uppercase">
+                    Resuelta
+                  </span>
+                }
+              </div>
+              <p class="text-xs text-gray-700 mt-1">{{ alt.mensaje }}</p>
+              <div class="flex items-center gap-3 text-[11px] text-gray-500 mt-2 font-medium">
+                @if (alt.busPlaca) {
+                  <span>Unidad: <strong class="text-primary">{{ alt.busPlaca }}</strong></span>
+                }
+                @if (alt.choferNombre) {
+                  <span>Chofer: {{ alt.choferNombre }}</span>
+                }
+                <span>Hora: {{ alt.fecha | date:'shortTime' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            @if (!alt.leida) {
+              <button
+                (click)="markAsRead(alt)"
+                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                Marcar Leída
+              </button>
+            }
+            @if (!alt.resuelta) {
+              <button
+                (click)="resolveAlert(alt)"
+                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
+              >
+                ✓ Resolver
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400">
+          No hay alertas pendientes en este momento.
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Lista de Incidencias Reportadas por Choferes (F6, F13) -->
+    <div class="space-y-3">
+      @for (inc of incidents(); track inc.id) {
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                {{ inc.tipo }}
+              </span>
+              <span class="text-xs text-gray-400 font-mono">{{ inc.fecha | date:'shortTime' }}</span>
+              @if (inc.atendida) {
+                <span class="text-[10px] text-emerald-600 font-bold">Atendida ✓</span>
+              }
+            </div>
+
+            <h4 class="text-sm font-bold text-gray-900">{{ inc.descripcion }}</h4>
+            <p class="text-xs text-gray-600 mt-1">
+              Reportado por <strong class="text-gray-900">{{ inc.choferNombre }}</strong> · Unidad <span class="text-primary font-bold">{{ inc.busPlaca }}</span>
+            </p>
+            @if (inc.ubicacion) {
+              <p class="text-[11px] text-gray-500 mt-0.5">Ubicación aproximada: {{ inc.ubicacion }}</p>
+            }
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            @if (!inc.atendida) {
+              <button
+                (click)="resolveIncident(inc)"
+                class="px-3.5 py-1.5 bg-primary hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Marcar Atendida
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400">
+          No hay incidencias reportadas por conductores.
+        </div>
+      }
+    </div>
+  }
+</div>

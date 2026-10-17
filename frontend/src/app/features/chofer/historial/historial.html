@@ -1,0 +1,47 @@
+<div class="space-y-6">
+  <div>
+    <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+      <span>📋</span> Historial de Viajes Realizados
+    </h2>
+    <p class="text-xs text-gray-500">
+      Consulta los turnos y viajes que has completado anteriormente
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (v of historial(); track v.id) {
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-blue-200 transition-all flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-gray-500 font-medium">{{ v.fecha }}</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {{ v.estado }}
+            </span>
+          </div>
+
+          <h3 class="text-base font-bold text-gray-900 mb-1">{{ v.rutaNombre }}</h3>
+          <p class="text-xs text-primary mb-3 font-bold">Unidad: {{ v.busPlaca }}</p>
+
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5 text-xs">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Horario:</span>
+              <span class="text-gray-800 font-medium">{{ v.horaInicio }} - {{ v.horaFin }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Pasajeros:</span>
+              <span class="text-gray-800 font-bold">{{ v.pasajerosTotales }}</span>
+            </div>
+            <div class="flex justify-between border-t border-gray-200 pt-1.5 mt-1.5">
+              <span class="text-gray-500">Recaudación:</span>
+              <span class="text-emerald-700 font-black">Q{{ v.totalRecaudado.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-span-3 text-center py-12 text-gray-400 bg-white rounded-2xl border border-gray-200">
+        No hay viajes anteriores en el historial.
+      </div>
+    }
+  </div>
+</div>

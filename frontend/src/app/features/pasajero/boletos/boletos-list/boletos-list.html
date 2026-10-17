@@ -1,0 +1,92 @@
+<div class="mb-4">
+  <h2 class="text-xl font-bold text-primary">Mis boletos</h2>
+  <p class="text-sm text-gray-500">{{ allTickets().length }} tickets en total</p>
+</div>
+
+<!-- Tabs -->
+<div class="bg-white rounded-xl p-1 shadow-sm mb-4 flex">
+  <button
+    (click)="setTab('activos')"
+    class="flex-1 py-2 text-xs font-semibold rounded-lg transition"
+    [class.bg-primary]="tab() === 'activos'"
+    [class.text-white]="tab() === 'activos'"
+    [class.text-gray-500]="tab() !== 'activos'"
+  >
+    Activos ({{ counts().activos }})
+  </button>
+  <button
+    (click)="setTab('pasados')"
+    class="flex-1 py-2 text-xs font-semibold rounded-lg transition"
+    [class.bg-primary]="tab() === 'pasados'"
+    [class.text-white]="tab() === 'pasados'"
+    [class.text-gray-500]="tab() !== 'pasados'"
+  >
+    Pasados ({{ counts().pasados }})
+  </button>
+  <button
+    (click)="setTab('cancelados')"
+    class="flex-1 py-2 text-xs font-semibold rounded-lg transition"
+    [class.bg-primary]="tab() === 'cancelados'"
+    [class.text-white]="tab() === 'cancelados'"
+    [class.text-gray-500]="tab() !== 'cancelados'"
+  >
+    Cancelados ({{ counts().cancelados }})
+  </button>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <app-skeleton type="card" [count]="3" />
+} @else {
+  <!-- Empty -->
+  @if (filteredTickets().length === 0) {
+    <app-empty-state
+      icon="🎫"
+      title="No hay tickets aquí"
+      message="Reserva una ruta para ver tus boletos"
+      actionLabel="Ver rutas"
+      (actionClick)="irARutas()"
+    />
+  }
+
+  <!-- Lista -->
+  <div class="space-y-3">
+    @for (ticket of filteredTickets(); track ticket.id) {
+      <a
+        [routerLink]="['/pasajero/boletos', ticket.id]"
+        class="block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition border-l-4 animate-fade-in"
+        [class.border-primary]="ticket.estado === 'RESERVADO' || ticket.estado === 'PAGADO'"
+        [class.border-green-500]="ticket.estado === 'ABORDADO'"
+        [class.border-gray-300]="ticket.estado === 'CANCELADO'"
+      >
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1">
+            <h3 class="font-bold text-gray-800 text-sm">{{ ticket.routeName }}</h3>
+            <p class="text-xs text-gray-500 mt-0.5 font-mono">{{ ticket.id }}</p>
+          </div>
+          <span
+            class="text-xs font-semibold px-2 py-1 rounded-full"
+            [class]="estadoColor(ticket.estado)"
+          >
+            {{ estadoLabel(ticket.estado) }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-xs mt-3">
+          <div>
+            <p class="text-gray-500">Asiento</p>
+            <p class="font-bold text-gray-800">#{{ ticket.asiento }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Fecha</p>
+            <p class="font-medium text-gray-700">{{ formatFecha(ticket.fecha) }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-gray-500">Total</p>
+            <p class="font-bold text-primary">Q{{ ticket.precio.toFixed(2) }}</p>
+          </div>
+        </div>
+      </a>
+    }
+  </div>
+}

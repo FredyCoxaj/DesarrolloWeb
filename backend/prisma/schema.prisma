@@ -1,0 +1,315 @@
+// ============================================
+// RutaBus GT - Schema de Base de Datos
+// Sistema de transporte de buses en tiempo real
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  PASAJERO
+  CHOFER
+  ADMIN
+}
+
+enum PncStatus {
+  PENDIENTE
+  VERIFICADO
+  CON_ANTECEDENTES
+  RECHAZADO
+}
+
+enum BusEstado {
+  ACTIVO
+  MANTENIMIENTO
+  FUERA_SERVICIO
+}
+
+enum TripEstado {
+  PROGRAMADO
+  EN_CURSO
+  COMPLETADO
+  CANCELADO
+}
+
+enum TicketEstado {
+  RESERVADO
+  PAGADO
+  ABORDADO
+  CANCELADO
+  NO_SHOW
+}
+
+enum PagoMetodo {
+  EFECTIVO
+  TARJETA
+  CUENTA_BANCARIA
+}
+
+enum PagoEstado {
+  PENDIENTE
+  COMPLETADO
+  FALLIDO
+  REEMBOLSADO
+}
+
+enum IncidenteTipo {
+  TRAFICO
+  AVERIA
+  ACCIDENTE
+  SOBRECUPO
+  PASAJERO_CONFLICTIVO
+  OTRO
+}
+
+// ============================================
+// USUARIOS Y AUTENTICACIÓN
+// ============================================
+
+model User {
+  id              String    @id @default(uuid())
+  dpi             String    @unique // CUI Guatemala (13 dígitos)
+  nombre          String
+  apellido        String
+  email           String?   @unique
+  telefono        String?
+  passwordHash    String
+  fechaNacimiento DateTime?
+  esMenor         Boolean   @default(false)
+  tutorId         String? // Si es menor, referencia al tutor
+  tutor           User?     @relation("TutorMenor", fields: [tutorId], references: [id])
+  menores         User[]    @relation("TutorMenor")
+  rol             Role      @default(PASAJERO)
+  pncStatus       PncStatus @default(PENDIENTE)
+  pncVerificadoEn DateTime?
+  fotoUrl         String?
+  activo          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  tickets              Ticket[]       @relation("PasajeroTickets")
+  tripsComoChofer      Trip[]         @relation("ChoferTrips")
+  incidentesReportados Incidente[]    @relation("ReportadoPor")
+  notificaciones       Notificacion[]
+
+  @@index([dpi])
+  @@index([rol])
+  @@map("users")
+}
+
+// ============================================
+// BUSES
+// ============================================
+
+model Bus {
+  id        String    @id @default(uuid())
+  placa     String    @unique
+  marca     String?
+  modelo    String?
+  anio      Int?
+  capacidad Int // Número total de asientos
+  filas     Int       @default(10) // Para dibujar el layout 2+2
+  columnas  Int       @default(4)
+  estado    BusEstado @default(ACTIVO)
+  fotoUrl   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  trips   Trip[]
+  gpsLogs GpsLog[]
+
+  @@map("buses")
+}
+
+// ============================================
+// RUTAS Y PARADAS
+// ============================================
+
+model Route {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String?
+  origen      String
+  destino     String
+  precioBase  Decimal  @db.Decimal(10, 2)
+  duracionMin Int // Duración estimada en minutos
+  activa      Boolean  @default(true)
+  color       String   @default("#1E3A8A") // Para el mapa
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stops RouteStop[]
+  trips Trip[]
+
+  @@map("routes")
+}
+
+model RouteStop {
+  id         String   @id @default(uuid())
+  routeId    String
+  route      Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  nombre     String
+  latitud    Float
+  longitud   Float
+  orden      Int // Orden de la parada (1, 2, 3...)
+  esTerminal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([routeId])
+  @@map("route_stops")
+}
+
+// ============================================
+// VIAJES (TRIPS)
+// ============================================
+
+model Trip {
+  id               String     @id @default(uuid())
+  routeId          String
+  route            Route      @relation(fields: [routeId], references: [id])
+  busId            String
+  bus              Bus        @relation(fields: [busId], references: [id])
+  choferId         String
+  chofer           User       @relation("ChoferTrips", fields: [choferId], references: [id])
+  fechaSalida      DateTime
+  fechaLlegada     DateTime?
+  estado           TripEstado @default(PROGRAMADO)
+  asientosOcupados Int        @default(0)
+  etaMin           Int? // ETA dinámico al destino
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  tickets    Ticket[]
+  incidentes Incidente[]
+  gpsLogs    GpsLog[]
+
+  @@index([routeId])
+  @@index([busId])
+  @@index([choferId])
+  @@index([estado])
+  @@map("trips")
+}
+
+// ============================================
+// TICKETS (BOLETOS)
+// ============================================
+
+model Ticket {
+  id             String       @id @default(uuid())
+  tripId         String
+  trip           Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  pasajeroId     String
+  pasajero       User         @relation("PasajeroTickets", fields: [pasajeroId], references: [id])
+  asiento        Int
+  paradaSubidaId String?
+  paradaBajadaId String?
+  precio         Decimal      @db.Decimal(10, 2)
+  estado         TicketEstado @default(RESERVADO)
+  qrCode         String       @unique // Código único para el QR
+  codigoAbordaje String? // Código que el chofer ingresa
+  abordadoEn     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  pago Pago?
+
+  @@unique([tripId, asiento]) // No dos tickets mismo asiento mismo viaje
+  @@index([pasajeroId])
+  @@index([estado])
+  @@map("tickets")
+}
+
+// ============================================
+// PAGOS
+// ============================================
+
+model Pago {
+  id            String     @id @default(uuid())
+  ticketId      String     @unique
+  ticket        Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  monto         Decimal    @db.Decimal(10, 2)
+  metodo        PagoMetodo
+  estado        PagoEstado @default(PENDIENTE)
+  referencia    String? // ID de transacción externa
+  registradoPor String? // ID del chofer si fue efectivo
+  notas         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([metodo])
+  @@index([estado])
+  @@map("payments")
+}
+
+// ============================================
+// GPS LOGS (Historial de posiciones)
+// ============================================
+
+model GpsLog {
+  id        String   @id @default(uuid())
+  busId     String
+  bus       Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  tripId    String?
+  trip      Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  latitud   Float
+  longitud  Float
+  velocidad Float? // km/h
+  rumbo     Float? // Dirección en grados
+  timestamp DateTime @default(now())
+
+  @@index([busId, timestamp])
+  @@index([tripId])
+  @@map("gps_logs")
+}
+
+// ============================================
+// INCIDENTES
+// ============================================
+
+model Incidente {
+  id           String        @id @default(uuid())
+  tripId       String?
+  trip         Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  reportadoPor String
+  reportador   User          @relation("ReportadoPor", fields: [reportadoPor], references: [id])
+  tipo         IncidenteTipo
+  descripcion  String
+  latitud      Float?
+  longitud     Float?
+  resuelto     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+
+  @@index([tripId])
+  @@index([resuelto])
+  @@map("incidents")
+}
+
+// ============================================
+// NOTIFICACIONES
+// ============================================
+
+model Notificacion {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titulo    String
+  mensaje   String
+  leida     Boolean  @default(false)
+  tipo      String? // "trip", "payment", "alert"
+  metadata  Json? // Datos extra (tripId, ticketId, etc.)
+  createdAt DateTime @default(now())
+
+  @@index([userId, leida])
+  @@map("notifications")
+}
