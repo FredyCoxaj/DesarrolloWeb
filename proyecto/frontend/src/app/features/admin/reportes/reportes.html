@@ -1,0 +1,120 @@
+<div class="space-y-6">
+  <!-- Header de Reportes y Botón Exportar CSV (F12) - Modo Claro -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <span>📈</span> Reportes Financieros & Rendimiento Operacional
+      </h2>
+      <p class="text-xs text-gray-500">
+        Rendimiento económico por unidad de bus, motivos de cancelación y exportación de datos
+      </p>
+    </div>
+
+    <button
+      (click)="exportCsv()"
+      class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
+    >
+      <span>📥 Descargar Reporte CSV</span>
+    </button>
+  </div>
+
+  <!-- Gráfica de Ingresos por Bus con Chart.js -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <span>📊</span> Comparativa de Ingresos Mensuales por Unidad
+        </h3>
+        <p class="text-xs text-gray-500">
+          Recaudación consolidada de los últimos 30 días en Quetzales
+        </p>
+      </div>
+      <span class="text-xs font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+        Chart.js Bar
+      </span>
+    </div>
+
+    <div class="relative h-64 sm:h-72 w-full">
+      <canvas id="busRevenueBarChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Tabla Detallada de Ingresos por Bus (Día / Semana / Mes) (F12) -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="mb-3">
+      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <span>💰</span> Desglose de Rendimiento por Unidad
+      </h3>
+      <p class="text-xs text-gray-500">Métricas acumuladas por autobús en Quetzales</p>
+    </div>
+
+    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
+          <tr>
+            <th class="py-3 px-3.5">Placa</th>
+            <th class="py-3 px-3.5">Ruta Principal</th>
+            <th class="py-3 px-3.5 text-right">Hoy</th>
+            <th class="py-3 px-3.5 text-right">Esta Semana</th>
+            <th class="py-3 px-3.5 text-right">Este Mes</th>
+            <th class="py-3 px-3.5 text-right">Viajes Mes</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          @for (s of summaries(); track s.busId) {
+            <tr class="hover:bg-blue-50/40 transition-colors">
+              <td class="py-3 px-3.5 font-bold text-primary font-mono">
+                {{ s.placa }}
+              </td>
+              <td class="py-3 px-3.5 font-bold text-gray-900">
+                {{ s.rutaNombre }}
+              </td>
+              <td class="py-3 px-3.5 text-right text-emerald-700 font-bold">
+                Q{{ s.ingresosHoy.toFixed(2) }}
+              </td>
+              <td class="py-3 px-3.5 text-right text-gray-800 font-semibold">
+                Q{{ s.ingresosSemana.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3 px-3.5 text-right text-primary font-black">
+                Q{{ s.ingresosMes.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3 px-3.5 text-right text-gray-600 font-mono">
+                {{ s.viajesMes }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sección de Motivos de Cancelación (F12) -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="mb-4">
+      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <span>⚠️</span> Análisis de Cancelaciones y Motivos
+      </h3>
+      <p class="text-xs text-gray-500">
+        Monitoreo de factores que causan suspensiones de viaje
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      @for (c of cancellations(); track c.motivo) {
+        <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-gray-800">{{ c.motivo }}</span>
+            <span class="text-xs font-black text-rose-600">{{ c.porcentaje }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2">
+            <div
+              class="bg-rose-500 h-full rounded-full"
+              [style.width.%]="c.porcentaje"
+            ></div>
+          </div>
+          <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidentes registrados</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

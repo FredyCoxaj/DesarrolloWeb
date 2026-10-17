@@ -1,0 +1,80 @@
+<div class="mb-4">
+  <h2 class="text-xl font-bold text-primary">Rutas disponibles</h2>
+  <p class="text-sm text-gray-500">
+    {{ filteredRoutes().length }} rutas encontradas
+  </p>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl p-4 shadow-sm mb-4 space-y-3">
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Origen</label>
+      <input
+        type="text"
+        [ngModel]="filtroOrigen()"
+        (ngModelChange)="filtroOrigen.set($event)"
+        placeholder="Ej: Amatitlán"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+      />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Destino</label>
+      <input
+        type="text"
+        [ngModel]="filtroDestino()"
+        (ngModelChange)="filtroDestino.set($event)"
+        placeholder="Ej: Villa Nueva"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+      />
+    </div>
+  </div>
+
+  @if (filtroOrigen() || filtroDestino()) {
+    <button
+      (click)="limpiarFiltros()"
+      class="text-xs text-primary font-semibold hover:underline"
+    >
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- Lista -->
+@if (filteredRoutes().length === 0) {
+  <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+    <p class="text-gray-400 text-3xl mb-2">🔍</p>
+    <p class="text-gray-500 text-sm">No se encontraron rutas</p>
+  </div>
+}
+
+<div class="space-y-3">
+  @for (route of filteredRoutes(); track route.id) {
+    <a
+      [routerLink]="['/pasajero/rutas', route.id]"
+      class="block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition border-l-4 border-primary"
+    >
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <h3 class="font-bold text-gray-800">{{ route.nombre }}</h3>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ route.paradas.length }} paradas · {{ route.duracionMin }} min
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-lg font-bold text-primary">Q{{ route.precio.toFixed(2) }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 mt-3 text-xs text-gray-500">
+        <span class="bg-blue-50 text-primary px-2 py-1 rounded">
+          {{ route.origen }}
+        </span>
+        <span>→</span>
+        <span class="bg-blue-50 text-primary px-2 py-1 rounded">
+          {{ route.destino }}
+        </span>
+      </div>
+    </a>
+  }
+</div>

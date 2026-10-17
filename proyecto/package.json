@@ -1,0 +1,29 @@
+{
+  "name": "rutabus-gt",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema de transporte de buses en tiempo real - Amatitlán & Sur",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev:back": "npm run start:dev --workspace=backend",
+    "dev:front": "npm run start --workspace=frontend",
+    "build:back": "npm run build --workspace=backend",
+    "build:front": "npm run build --workspace=frontend",
+    "db:migrate": "npm run prisma:migrate --workspace=backend",
+    "db:studio": "npm run prisma:studio --workspace=backend",
+    "db:seed": "npm run prisma:seed --workspace=backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "bcrypt@6.0.0": true
+  }
+}

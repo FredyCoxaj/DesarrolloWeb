@@ -1,0 +1,12 @@
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-50">
+  @for (item of items; track item.path) {
+    <a
+      [routerLink]="item.path"
+      routerLinkActive="text-primary"
+      class="flex flex-col items-center gap-0.5 text-gray-500 text-xs flex-1 py-1"
+    >
+      <span class="text-xl">{{ item.icon }}</span>
+      <span>{{ item.label }}</span>
+    </a>
+  }
+</nav>

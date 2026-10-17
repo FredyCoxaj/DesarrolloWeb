@@ -1,0 +1,122 @@
+<div class="mb-4">
+  <h2 class="text-xl font-bold text-primary">Mi perfil</h2>
+  <p class="text-sm text-gray-500">Gestiona tu información personal</p>
+</div>
+
+@if (user()) {
+  <!-- Card con avatar y datos -->
+  <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+    <div class="bg-gradient-to-r from-primary to-blue-800 px-4 py-6 text-center">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-white text-primary rounded-full text-2xl font-bold mb-3">
+        {{ iniciales }}
+      </div>
+      <h3 class="text-white font-bold text-lg">{{ user()!.nombre }}</h3>
+      <p class="text-blue-100 text-xs mt-0.5">{{ user()!.email }}</p>
+
+      @if (user()!.dpiVerificado) {
+        <span class="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full mt-3">
+          ✓ DPI Verificado
+        </span>
+      } @else {
+        <span class="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded-full mt-3">
+          ⏳ DPI pendiente
+        </span>
+      }
+    </div>
+
+    <!-- Mensaje -->
+    @if (message()) {
+      <div
+        class="mx-4 mt-4 text-sm px-4 py-2 rounded-lg"
+        [class.bg-green-50]="message()!.type === 'ok'"
+        [class.text-green-700]="message()!.type === 'ok'"
+        [class.bg-red-50]="message()!.type === 'error'"
+        [class.text-red-600]="message()!.type === 'error'"
+      >
+        {{ message()!.text }}
+      </div>
+    }
+
+    <!-- Vista / Edición -->
+    <div class="p-4 space-y-3">
+      @if (!editing()) {
+        <div class="flex justify-between text-sm py-2 border-b border-gray-100">
+          <span class="text-gray-500">DPI</span>
+          <span class="font-mono font-medium">{{ user()!.dpi }}</span>
+        </div>
+        <div class="flex justify-between text-sm py-2 border-b border-gray-100">
+          <span class="text-gray-500">Nombre</span>
+          <span class="font-medium text-right">{{ user()!.nombre }}</span>
+        </div>
+        <div class="flex justify-between text-sm py-2 border-b border-gray-100">
+          <span class="text-gray-500">Correo</span>
+          <span class="font-medium text-right">{{ user()!.email }}</span>
+        </div>
+        <div class="flex justify-between text-sm py-2">
+          <span class="text-gray-500">Teléfono</span>
+          <span class="font-medium">{{ user()!.telefono || '—' }}</span>
+        </div>
+      } @else {
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Nombre</label>
+          <input
+            type="text"
+            [(ngModel)]="nombre"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Correo</label>
+          <input
+            type="email"
+            [(ngModel)]="email"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Teléfono</label>
+          <input
+            type="tel"
+            [(ngModel)]="telefono"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button
+            (click)="cancelar()"
+            class="flex-1 bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg text-sm"
+          >
+            Cancelar
+          </button>
+          <button
+            (click)="guardar()"
+            [disabled]="saving()"
+            class="flex-1 bg-primary text-white font-semibold py-2 rounded-lg text-sm disabled:opacity-50"
+          >
+            @if (saving()) { Guardando... } @else { Guardar }
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  @if (!editing()) {
+    <div class="space-y-2 mb-24">
+      <button
+        (click)="iniciarEdicion()"
+        class="w-full bg-white text-primary font-semibold py-3 rounded-xl shadow-sm hover:bg-blue-50 transition"
+      >
+        ✏️ Editar perfil
+      </button>
+
+      <button
+        (click)="cerrarSesion()"
+        class="w-full bg-white border-2 border-red-400 text-red-500 font-semibold py-3 rounded-xl hover:bg-red-50 transition"
+      >
+        Cerrar sesión
+      </button>
+    </div>
+  }
+}

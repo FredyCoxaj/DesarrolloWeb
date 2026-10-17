@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <!-- Header de Bienvenida / Título - Modo Claro -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <span>📊</span> Dashboard Operativo General
+      </h2>
+      <p class="text-xs text-gray-500">
+        Métricas clave en tiempo real para el sistema de buses del área metropolitana y sur
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a
+        routerLink="/admin/mapa"
+        class="px-4 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+      >
+        <span>🗺️ Ver Mapa Global en Vivo</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI CARDS (F9) - Modo Claro -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- KPI 1: Viajes Hoy -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Viajes Hoy</span>
+        <span class="w-8 h-8 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-sm font-bold">
+          🚍
+        </span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black text-gray-900">
+        {{ kpis().viajesHoy }}
+      </div>
+      <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-600 font-semibold">
+        <span>▲ +12%</span>
+        <span class="text-gray-400 font-normal">vs. ayer mismo horario</span>
+      </div>
+    </div>
+
+    <!-- KPI 2: Ocupación Promedio -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ocupación Promedio</span>
+        <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
+          📈
+        </span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black text-gray-900">
+        {{ kpis().ocupacionPromedioPct }}%
+      </div>
+      <div class="w-full bg-gray-100 h-2 rounded-full mt-3 overflow-hidden">
+        <div
+          class="bg-amber-400 h-full rounded-full transition-all duration-500"
+          [style.width.%]="kpis().ocupacionPromedioPct"
+        ></div>
+      </div>
+    </div>
+
+    <!-- KPI 3: Ingresos Hoy -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ingresos Hoy (GTQ)</span>
+        <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-black">
+          Q
+        </span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black text-emerald-600">
+        Q{{ kpis().ingresosHoyQ.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+      </div>
+      <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-500">
+        <span>{{ kpis().pasajerosHoy }} pasajeros transportados</span>
+      </div>
+    </div>
+
+    <!-- KPI 4: Buses Activos -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Buses Activos</span>
+        <span class="w-8 h-8 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-sm font-bold">
+          🟢
+        </span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black text-primary flex items-baseline gap-1">
+        <span>{{ kpis().busesActivos }}</span>
+        <span class="text-xs font-normal text-gray-400">/ {{ kpis().totalBuses }} total flota</span>
+      </div>
+      <div class="flex items-center gap-1.5 mt-2 text-[11px] text-primary font-semibold">
+        <span>GPS y telemetría transmitiendo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN GRÁFICA Y TOP RUTAS (F9) -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Gráfica de Ingresos Últimos 7 Días con Chart.js -->
+    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <span>📈</span> Tendencia de Ingresos (Últimos 7 Días)
+          </h3>
+          <p class="text-xs text-gray-500">
+            Evolución diaria de recaudación en todas las rutas metropolitanas
+          </p>
+        </div>
+        <span class="text-[11px] text-primary font-bold bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+          Chart.js
+        </span>
+      </div>
+
+      <div class="relative flex-1 min-h-[260px] w-full">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Top 5 Rutas Más Usadas -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col">
+      <div class="mb-4">
+        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <span>🏆</span> Rutas Más Demandadas
+        </h3>
+        <p class="text-xs text-gray-500">
+          Distribución de pasajeros en la jornada
+        </p>
+      </div>
+
+      <div class="space-y-3.5 flex-1 overflow-y-auto">
+        @for (r of topRoutes(); track r.nombre) {
+          <div class="bg-gray-50/80 p-3 rounded-xl border border-gray-200/80">
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="font-bold text-gray-800 truncate max-w-[170px]">{{ r.nombre }}</span>
+              <span class="text-primary font-black">{{ r.pasajeros }} pas.</span>
+            </div>
+            <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+              <div
+                class="bg-primary h-full rounded-full transition-all duration-300"
+                [style.width.%]="r.porcentaje"
+              ></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+              <span>{{ r.viajes }} viajes completados</span>
+              <span>{{ r.porcentaje }}% cuota</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ÚLTIMOS VIAJES COMPLETADOS (F9) -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+          <span>🏁</span> Últimos Viajes Completados
+        </h3>
+        <p class="text-xs text-gray-500">
+          Registro reciente de arribos y liquidaciones de unidades
+        </p>
+      </div>
+      <a
+        routerLink="/admin/reportes"
+        class="text-xs text-primary hover:underline font-bold"
+      >
+        Ver Todos →
+      </a>
+    </div>
+
+    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
+          <tr>
+            <th class="py-3 px-3.5">Ruta</th>
+            <th class="py-3 px-3.5">Bus / Placa</th>
+            <th class="py-3 px-3.5">Chofer</th>
+            <th class="py-3 px-3.5">Hora Llegada</th>
+            <th class="py-3 px-3.5">Ocupación</th>
+            <th class="py-3 px-3.5 text-right">Recaudado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          @for (t of recentTrips(); track t.id) {
+            <tr class="hover:bg-blue-50/40 transition-colors">
+              <td class="py-3 px-3.5 font-bold text-gray-900">
+                {{ t.ruta }}
+              </td>
+              <td class="py-3 px-3.5 font-bold text-primary">
+                {{ t.busPlaca }}
+              </td>
+              <td class="py-3 px-3.5 text-gray-700">
+                {{ t.chofer }}
+              </td>
+              <td class="py-3 px-3.5 text-gray-500 font-mono">
+                {{ t.horaFin }}
+              </td>
+              <td class="py-3 px-3.5">
+                <span class="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700 text-[11px] font-semibold">
+                  {{ t.ocupacion }}
+                </span>
+              </td>
+              <td class="py-3 px-3.5 text-right font-black text-emerald-700">
+                Q{{ t.totalQ.toFixed(2) }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

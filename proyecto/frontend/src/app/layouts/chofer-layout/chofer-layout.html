@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
+  <!-- Header Chofer consistente con el diseño institucional de Pasajero -->
+  <header class="bg-primary text-white px-4 py-3 sticky top-0 z-40 shadow-md">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-primary rounded-xl w-9 h-9 flex items-center justify-center font-bold text-lg shadow-sm">
+          🚌
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold leading-tight">RutaBus GT</h1>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-400 text-slate-900">
+              Panel Chofer
+            </span>
+          </div>
+          <p class="text-xs text-blue-100">
+            {{ chofer().nombre }} · Unidad <strong class="text-white font-bold">{{ chofer().busAsignado }}</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Indicador Telemetría GPS en Vivo -->
+        <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs text-white backdrop-blur">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+          </span>
+          <span class="text-[11px] font-medium">GPS Activo (3s)</span>
+        </div>
+
+        <app-role-switcher />
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Navegación Chofer en Modo Claro -->
+  <nav class="bg-white border-b border-gray-200 px-4 py-2 sticky top-[57px] z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-around sm:justify-start sm:gap-2">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-primary text-white font-semibold shadow-sm"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-gray-600 hover:text-primary hover:bg-blue-50 transition-all cursor-pointer"
+        >
+          <span class="text-base">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </div>
+  </nav>
+
+  <!-- Contenedor Principal -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-20">
+    <router-outlet />
+  </main>
+</div>
