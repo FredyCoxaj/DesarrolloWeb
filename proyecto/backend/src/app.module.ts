@@ -12,7 +12,8 @@ import { UsersModule } from './users/users.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { GpsModule } from './gps/gps.module';
-import { PncModule } from './pnc/pnc.module'; // <-- NUEVO
+import { PncModule } from './pnc/pnc.module';
+import { WalletModule } from './wallet/wallet.module'; // <-- NUEVO
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -28,7 +29,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
     PaymentsModule,
     AdminModule,
     GpsModule,
-    PncModule, // <-- NUEVO
+    PncModule,
+    WalletModule, 
   ],
   controllers: [AppController],
   providers: [

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "saldo" DECIMAL(10,2) NOT NULL DEFAULT 0;

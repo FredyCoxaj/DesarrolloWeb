@@ -93,6 +93,7 @@ model User {
   pncStatus       PncStatus @default(PENDIENTE)
   pncVerificadoEn DateTime?
   fotoUrl         String?
+  saldo           Decimal  @default(0) @db.Decimal(10, 2)
   activo          Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
