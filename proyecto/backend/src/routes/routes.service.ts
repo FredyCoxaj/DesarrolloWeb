@@ -2,12 +2,16 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRouteDto } from './dto/create-route.dto';
 import { UpdateRouteDto } from './dto/update-route.dto';
+import { PathfindingService } from './pathfinding.service';
 
 @Injectable()
 export class RoutesService {
   private readonly logger = new Logger(RoutesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly pathfindingService: PathfindingService,
+  ) {}
 
   // ============================================
   // LISTAR TODAS LAS RUTAS (público)
@@ -42,7 +46,7 @@ export class RoutesService {
   }
 
   // ============================================
-  // CREAR RUTA (admin) - CON ALGORITMO DE DISTANCIA
+  // CREAR RUTA (admin) - CON DIJKSTRA
   // ============================================
   async create(dto: CreateRouteDto) {
     const { stops, ...routeData } = dto;
@@ -55,7 +59,7 @@ export class RoutesService {
       throw new BadRequestException('Ya existe una ruta con ese nombre');
     }
 
-    // Validar orden de paradas y calcular distancia automática
+    // Validar orden de paradas y calcular distancia usando Dijkstra
     if (stops && stops.length > 1) {
       const ordenes = stops.map((s) => s.orden);
       const ordenesUnicos = new Set(ordenes);
@@ -63,9 +67,10 @@ export class RoutesService {
         throw new BadRequestException('Los órdenes de paradas no pueden repetirse');
       }
 
-      // Si no viene precio o duración, los calculamos automáticamente
-      const distancia = this.calcularDistanciaTotal(stops);
+      // 1. Calcular distancia con Dijkstra
+      const distancia = this.pathfindingService.calcularDistanciaRuta(stops);
       
+      // 2. Asignar precio y duración automáticamente si no vienen
       if (!routeData.precioBase || routeData.precioBase === 0) {
         routeData.precioBase = Math.round(distancia * 2.5 * 100) / 100; // Q2.5/km
       }
@@ -94,8 +99,8 @@ export class RoutesService {
 
     this.logger.log(`✅ Ruta creada: ${route.nombre}`);
     
-    // Devolvemos también la distancia total calculada
-    const distanciaTotal = stops && stops.length > 1 ? this.calcularDistanciaTotal(stops) : 0;
+    // Devolver también la distancia total calculada con Dijkstra
+    const distanciaTotal = stops && stops.length > 1 ? this.pathfindingService.calcularDistanciaRuta(stops) : 0;
     
     return { ...route, distanciaTotalKm: distanciaTotal };
   }
@@ -104,7 +109,7 @@ export class RoutesService {
   // ACTUALIZAR RUTA (admin)
   // ============================================
   async update(id: string, dto: UpdateRouteDto) {
-    await this.findOne(id); // valida existencia
+    await this.findOne(id);
 
     const { stops, ...routeData } = dto;
 
@@ -206,49 +211,17 @@ export class RoutesService {
   }
 
   // ============================================
-  // ALGORITMO DE DISTANCIA (Haversine)
+  // CALCULAR DISTANCIA CON DIJKSTRA (público)
   // ============================================
-  
-  private calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = this.toRad(lat2 - lat1);
-    const dLon = this.toRad(lon2 - lon1);
-    
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  private toRad(value: number): number {
-    return (value * Math.PI) / 180;
-  }
-
-  private calcularDistanciaTotal(stops: any[]): number {
-    let distanciaTotal = 0;
-    for (let i = 0; i < stops.length - 1; i++) {
-      distanciaTotal += this.calcularDistanciaHaversine(
-        stops[i].latitud,
-        stops[i].longitud,
-        stops[i + 1].latitud,
-        stops[i + 1].longitud,
-      );
-    }
-    return Math.round(distanciaTotal * 100) / 100;
-  }
-
   async calcularDistanciaRuta(stops: any[]) {
     if (!stops || stops.length < 2) {
       throw new BadRequestException('Se necesitan al menos 2 paradas para calcular la distancia');
     }
-    const distancia = this.calcularDistanciaTotal(stops);
+    const distancia = this.pathfindingService.calcularDistanciaRuta(stops);
     return {
       distanciaKm: distancia,
-      precioSugerido: Math.round(distancia * 2.5 * 100) / 100, // Q2.50 por km
-      duracionSugeridaMin: Math.ceil(distancia * 2), // 2 minutos por km
+      precioSugerido: Math.round(distancia * 2.5 * 100) / 100,
+      duracionSugeridaMin: Math.ceil(distancia * 2),
     };
   }
 }
