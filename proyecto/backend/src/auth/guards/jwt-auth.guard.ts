@@ -10,6 +10,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
+    // 1. SI ES WEBSOCKET, LO DEJAMOS PASAR (Evita el error de 'authorization')
+    if (context.getType() === 'ws') {
+      return true;
+    }
+
+    // 2. Lógica normal para HTTP
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

@@ -11,6 +11,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { UsersModule } from './users/users.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
+import { GpsModule } from './gps/gps.module'; // <-- NUEVO
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -25,6 +26,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     UsersModule,
     PaymentsModule,
     AdminModule,
+    GpsModule, // <-- NUEVO
   ],
   controllers: [AppController],
   providers: [
