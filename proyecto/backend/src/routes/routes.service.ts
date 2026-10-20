@@ -42,7 +42,7 @@ export class RoutesService {
   }
 
   // ============================================
-  // CREAR RUTA (admin)
+  // CREAR RUTA (admin) - CON ALGORITMO DE DISTANCIA
   // ============================================
   async create(dto: CreateRouteDto) {
     const { stops, ...routeData } = dto;
@@ -55,12 +55,22 @@ export class RoutesService {
       throw new BadRequestException('Ya existe una ruta con ese nombre');
     }
 
-    // Validar orden de paradas
-    if (stops && stops.length > 0) {
+    // Validar orden de paradas y calcular distancia automática
+    if (stops && stops.length > 1) {
       const ordenes = stops.map((s) => s.orden);
       const ordenesUnicos = new Set(ordenes);
       if (ordenes.length !== ordenesUnicos.size) {
         throw new BadRequestException('Los órdenes de paradas no pueden repetirse');
+      }
+
+      // Si no viene precio o duración, los calculamos automáticamente
+      const distancia = this.calcularDistanciaTotal(stops);
+      
+      if (!routeData.precioBase || routeData.precioBase === 0) {
+        routeData.precioBase = Math.round(distancia * 2.5 * 100) / 100; // Q2.5/km
+      }
+      if (!routeData.duracionMin || routeData.duracionMin === 0) {
+        routeData.duracionMin = Math.ceil(distancia * 2); // 2 min/km
       }
     }
 
@@ -82,8 +92,12 @@ export class RoutesService {
       include: { stops: { orderBy: { orden: 'asc' } } },
     });
 
-    this.logger.log(` Ruta creada: ${route.nombre}`);
-    return route;
+    this.logger.log(`✅ Ruta creada: ${route.nombre}`);
+    
+    // Devolvemos también la distancia total calculada
+    const distanciaTotal = stops && stops.length > 1 ? this.calcularDistanciaTotal(stops) : 0;
+    
+    return { ...route, distanciaTotalKm: distanciaTotal };
   }
 
   // ============================================
@@ -94,7 +108,6 @@ export class RoutesService {
 
     const { stops, ...routeData } = dto;
 
-    // Si vienen stops, borrar las anteriores y crear las nuevas (transaccional)
     if (stops) {
       return this.prisma.$transaction(async (tx) => {
         await tx.routeStop.deleteMany({ where: { routeId: id } });
@@ -131,7 +144,6 @@ export class RoutesService {
   async remove(id: string) {
     await this.findOne(id);
 
-    // Verificar si hay viajes activos usando esta ruta
     const viajesActivos = await this.prisma.trip.count({
       where: {
         routeId: id,
@@ -176,7 +188,6 @@ export class RoutesService {
       );
     }
 
-    // Precio proporcional a la distancia en paradas
     const totalParadas = route.stops.length - 1;
     const tramoRecorrido = bajada.orden - subida.orden;
     const proporcion = tramoRecorrido / totalParadas;
@@ -191,6 +202,53 @@ export class RoutesService {
       tramoRecorrido,
       totalParadas,
       precioCalculado: precio,
+    };
+  }
+
+  // ============================================
+  // ALGORITMO DE DISTANCIA (Haversine)
+  // ============================================
+  
+  private calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private toRad(value: number): number {
+    return (value * Math.PI) / 180;
+  }
+
+  private calcularDistanciaTotal(stops: any[]): number {
+    let distanciaTotal = 0;
+    for (let i = 0; i < stops.length - 1; i++) {
+      distanciaTotal += this.calcularDistanciaHaversine(
+        stops[i].latitud,
+        stops[i].longitud,
+        stops[i + 1].latitud,
+        stops[i + 1].longitud,
+      );
+    }
+    return Math.round(distanciaTotal * 100) / 100;
+  }
+
+  async calcularDistanciaRuta(stops: any[]) {
+    if (!stops || stops.length < 2) {
+      throw new BadRequestException('Se necesitan al menos 2 paradas para calcular la distancia');
+    }
+    const distancia = this.calcularDistanciaTotal(stops);
+    return {
+      distanciaKm: distancia,
+      precioSugerido: Math.round(distancia * 2.5 * 100) / 100, // Q2.50 por km
+      duracionSugeridaMin: Math.ceil(distancia * 2), // 2 minutos por km
     };
   }
 }

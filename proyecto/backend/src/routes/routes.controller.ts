@@ -31,6 +31,16 @@ export class RoutesController {
   }
 
   // ============================================
+  // CALCULAR DISTANCIA DE RUTA (público)
+  // ============================================
+  @Public()
+  @Post('calcular-distancia')
+  @HttpCode(HttpStatus.OK)
+  calcularDistancia(@Body() stops: any[]) {
+    return this.routesService.calcularDistanciaRuta(stops);
+  }
+
+  // ============================================
   // CALCULAR PRECIO POR TRAMO (público)
   // ============================================
   @Public()
