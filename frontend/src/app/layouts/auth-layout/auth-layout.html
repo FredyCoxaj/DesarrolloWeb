@@ -1,9 +1,7 @@
 <div class="min-h-screen relative overflow-hidden">
   <!-- Fondo: bus real de Unsplash -->
-  <div
-    class="absolute inset-0 bg-cover bg-center scale-105"
-    style="background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1600&q=80');"
-  ></div>
+  <div class="absolute inset-0 bg-cover bg-center scale-105"
+    style="background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1600&q=80');"></div>
 
   <!-- Overlay con gradiente institucional -->
   <div class="absolute inset-0 bg-gradient-to-b from-primary/95 via-blue-900/85 to-primary/95"></div>
@@ -13,9 +11,7 @@
 
     <!-- Marca -->
     <div class="text-center mb-6 animate-fade-in">
-      <div class="inline-flex items-center justify-center bg-white text-primary rounded-2xl w-16 h-16 font-bold text-2xl mb-3 shadow-lg">
-        🚌
-      </div>
+      <img src="/icons/logo-a.svg" alt="RutaBus GT" class="w-20 h-20 mx-auto mb-3 drop-shadow-xl" />
       <h1 class="text-white text-2xl font-bold tracking-tight">RutaBus GT</h1>
       <p class="text-blue-100 text-sm">Amatitlán & Sur</p>
     </div>
@@ -32,10 +28,12 @@
       </p>
       <div class="grid grid-cols-4 gap-2">
         @for (service of services; track service.name) {
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2 flex flex-col items-center gap-1 hover:bg-white/20 transition">
-            <span class="text-xl">{{ service.icon }}</span>
-            <span class="text-white/90 text-[9px] font-semibold text-center leading-tight">{{ service.name }}</span>
-          </div>
+        <div class="bg-white rounded-xl p-2 flex flex-col items-center gap-1 hover:bg-gray-100 transition shadow-sm">
+          <img [src]="service.iconPath" [alt]="service.name" class="w-6 h-6 object-contain" />
+          <span class="text-gray-700 text-[9px] font-semibold text-center leading-tight">
+            {{ service.name }}
+          </span>
+        </div>
         }
       </div>
     </div>
@@ -47,16 +45,14 @@
       </p>
       <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
         @for (ad of ads; track ad.id) {
-          <div
-            class="snap-center flex-shrink-0 w-64 rounded-xl overflow-hidden shadow-lg border border-white/20"
-            [class]="ad.bgClass"
-          >
-            <div class="p-3 text-white">
-              <p class="text-[10px] font-bold uppercase opacity-80">{{ ad.tag }}</p>
-              <p class="text-base font-bold mt-0.5 leading-tight">{{ ad.title }}</p>
-              <p class="text-xs opacity-90 mt-1">{{ ad.subtitle }}</p>
-            </div>
+        <div class="snap-center flex-shrink-0 w-64 rounded-xl overflow-hidden shadow-lg border border-white/20"
+          [class]="ad.bgClass">
+          <div class="p-3 text-white">
+            <p class="text-[10px] font-bold uppercase opacity-80">{{ ad.tag }}</p>
+            <p class="text-base font-bold mt-0.5 leading-tight">{{ ad.title }}</p>
+            <p class="text-xs opacity-90 mt-1">{{ ad.subtitle }}</p>
           </div>
+        </div>
         }
       </div>
     </div>

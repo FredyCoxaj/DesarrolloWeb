@@ -1,23 +1,24 @@
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
   <div class="max-w-lg mx-auto flex justify-around py-2">
     @for (item of items; track item.path) {
-    <a [routerLink]="item.path" routerLinkActive="text-primary"
-      class="relative flex flex-col items-center gap-0.5 text-gray-500 text-xs flex-1 py-1 transition-colors">
-      <!--<span class="text-xl">{{ item.icon }}</span> -->
-      <!--<span>{{ item.label }}</span> -->
-      <svg lucideMap [size]="20" class="..."></svg>
-      <svg lucideBus [size]="20" class="..."></svg>
-      <svg lucideTicket [size]="20" class="..."></svg>
-      <svg lucideBell [size]="20" class="..."></svg>
-      <svg lucideUser [size]="20" class="..."></svg>
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="text-primary"
+        class="relative flex flex-col items-center gap-1 text-gray-500 text-[10px] flex-1 py-1 transition-colors"
+      >
+        <img
+          [src]="item.iconPath"
+          [alt]="item.label"
+          class="w-5 h-5 object-contain"
+        />
+        <span class="font-medium">{{ item.label }}</span>
 
-      @if (item.label === 'Avisos' && unreadCount > 0) {
-      <span
-        class="absolute top-0 right-1/4 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-        {{ unreadCount }}
-      </span>
-      }
-    </a>
+        @if (item.label === 'Avisos' && unreadCount > 0) {
+          <span class="absolute top-0 right-1/4 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+            {{ unreadCount }}
+          </span>
+        }
+      </a>
     }
   </div>
 </nav>

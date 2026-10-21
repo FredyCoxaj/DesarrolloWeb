@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 
 interface Service {
   name: string;
-  icon: string;
+  iconPath: string;
 }
 
 interface Ad {
@@ -23,10 +23,9 @@ interface Ad {
 })
 export class AuthLayout {
   services: Service[] = [
-    { name: 'Visa', icon: '💳' },
-    { name: 'BI', icon: '🏦' },
-    { name: 'Tigo Money', icon: '📱' },
-    { name: 'Uber', icon: '🚗' },
+    { name: 'Visa', iconPath: 'icons/VISA.svg' },
+    { name: 'Mastercard', iconPath: 'icons/Mastercard.svg' },
+    { name: 'PayPal', iconPath: 'icons/PayPal.svg' },
   ];
 
   ads: Ad[] = [
