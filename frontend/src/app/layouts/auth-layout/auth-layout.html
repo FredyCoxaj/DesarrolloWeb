@@ -1,19 +1,68 @@
-<div class="min-h-screen bg-gradient-to-b from-primary to-blue-800 flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <div class="text-center mb-6">
-      <div class="inline-flex items-center justify-center bg-white text-primary rounded-2xl w-16 h-16 font-bold text-2xl mb-3">
-        RB
+<div class="min-h-screen relative overflow-hidden">
+  <!-- Fondo: bus real de Unsplash -->
+  <div
+    class="absolute inset-0 bg-cover bg-center scale-105"
+    style="background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1600&q=80');"
+  ></div>
+
+  <!-- Overlay con gradiente institucional -->
+  <div class="absolute inset-0 bg-gradient-to-b from-primary/95 via-blue-900/85 to-primary/95"></div>
+
+  <!-- Contenido -->
+  <div class="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 py-8">
+
+    <!-- Marca -->
+    <div class="text-center mb-6 animate-fade-in">
+      <div class="inline-flex items-center justify-center bg-white text-primary rounded-2xl w-16 h-16 font-bold text-2xl mb-3 shadow-lg">
+        🚌
       </div>
-      <h1 class="text-white text-2xl font-bold">RutaBus GT</h1>
+      <h1 class="text-white text-2xl font-bold tracking-tight">RutaBus GT</h1>
       <p class="text-blue-100 text-sm">Amatitlán & Sur</p>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-xl p-6">
+    <!-- Tarjeta de autenticación -->
+    <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 animate-slide-up">
       <router-outlet />
     </div>
 
-    <p class="text-center text-blue-100 text-xs mt-6">
-      © 2026 RutaBus GT
+    <!-- Servicios de otras plataformas -->
+    <div class="w-full max-w-md mb-5 animate-fade-in">
+      <p class="text-blue-100/80 text-[10px] text-center mb-3 uppercase tracking-widest font-semibold">
+        Pagos y alianzas
+      </p>
+      <div class="grid grid-cols-4 gap-2">
+        @for (service of services; track service.name) {
+          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2 flex flex-col items-center gap-1 hover:bg-white/20 transition">
+            <span class="text-xl">{{ service.icon }}</span>
+            <span class="text-white/90 text-[9px] font-semibold text-center leading-tight">{{ service.name }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Publicidad / Promociones -->
+    <div class="w-full max-w-md animate-fade-in">
+      <p class="text-blue-100/80 text-[10px] text-center mb-2 uppercase tracking-widest font-semibold">
+        Promociones
+      </p>
+      <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
+        @for (ad of ads; track ad.id) {
+          <div
+            class="snap-center flex-shrink-0 w-64 rounded-xl overflow-hidden shadow-lg border border-white/20"
+            [class]="ad.bgClass"
+          >
+            <div class="p-3 text-white">
+              <p class="text-[10px] font-bold uppercase opacity-80">{{ ad.tag }}</p>
+              <p class="text-base font-bold mt-0.5 leading-tight">{{ ad.title }}</p>
+              <p class="text-xs opacity-90 mt-1">{{ ad.subtitle }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <p class="text-blue-100/60 text-xs mt-6 text-center">
+      © 2026 RutaBus GT · Hecho en Guatemala 🇬🇹
     </p>
   </div>
 </div>
