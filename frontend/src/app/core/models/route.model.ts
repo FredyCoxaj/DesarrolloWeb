@@ -14,4 +14,5 @@ export interface Route {
   precio: number;
   duracionMin: number;
   paradas: Stop[];
+  imagen?: string; 
 }

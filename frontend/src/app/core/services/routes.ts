@@ -16,6 +16,7 @@ export class RoutesService {
       destino: 'Villa Nueva',
       precio: 5.00,
       duracionMin: 35,
+      imagen: 'img/rutas/bus-1.jpg',
       paradas: [
         { id: 'p1', nombre: 'Parque Central Amatitlán', lat: 14.4769, lng: -90.6347, orden: 1 },
         { id: 'p2', nombre: 'Mercado Municipal', lat: 14.4805, lng: -90.6280, orden: 2 },
@@ -29,6 +30,7 @@ export class RoutesService {
       destino: 'Zona 12',
       precio: 7.50,
       duracionMin: 45,
+      imagen: 'img/rutas/bus-2.jpg',
       paradas: [
         { id: 'p4', nombre: 'Centro Villa Nueva', lat: 14.5250, lng: -90.5870, orden: 1 },
         { id: 'p5', nombre: 'Calzada Aguilar Batres', lat: 14.5800, lng: -90.5500, orden: 2 },
@@ -42,6 +44,7 @@ export class RoutesService {
       destino: 'Mixco',
       precio: 10.00,
       duracionMin: 60,
+      imagen: 'img/rutas/bus-3.jpg',
       paradas: [
         { id: 'p7', nombre: 'Parque Amatitlán', lat: 14.4769, lng: -90.6347, orden: 1 },
         { id: 'p8', nombre: 'San Miguel Petapa', lat: 14.5020, lng: -90.5610, orden: 2 },
@@ -55,6 +58,7 @@ export class RoutesService {
       destino: 'San Miguel Petapa',
       precio: 4.00,
       duracionMin: 25,
+      imagen: 'img/rutas/bus-4.jpg',
       paradas: [
         { id: 'p10', nombre: 'Parque Amatitlán', lat: 14.4769, lng: -90.6347, orden: 1 },
         { id: 'p11', nombre: 'San Miguel Petapa', lat: 14.5020, lng: -90.5610, orden: 2 },

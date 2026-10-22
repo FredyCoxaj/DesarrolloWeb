@@ -41,12 +41,12 @@
   <!-- Empty -->
   @if (filteredTickets().length === 0) {
     <app-empty-state
-      icon="🎫"
-      title="No hay tickets aquí"
-      message="Reserva una ruta para ver tus boletos"
-      actionLabel="Ver rutas"
-      (actionClick)="irARutas()"
-    />
+  icon="ticket"
+  title="No hay tickets aquí"
+  message="Reserva una ruta para ver tus boletos"
+  actionLabel="Ver rutas"
+  (actionClick)="irARutas()"
+/>
   }
 
   <!-- Lista -->

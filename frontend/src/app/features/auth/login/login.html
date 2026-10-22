@@ -37,16 +37,17 @@
   }
 
   <button
-    type="submit"
-    [disabled]="loading()"
-    class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition disabled:opacity-50"
-  >
-    @if (loading()) {
-      Ingresando...
-    } @else {
-      Iniciar sesión
-    }
-  </button>
+  type="submit"
+  [disabled]="loading()"
+  class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
+>
+  @if (loading()) {
+    Ingresando...
+  } @else {
+    Iniciar sesión
+    <svg lucideArrowRight class="w-[18px] h-[18px]"></svg>
+  }
+</button>
 </form>
 
 <!-- Divisor -->

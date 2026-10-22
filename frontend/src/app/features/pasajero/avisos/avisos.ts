@@ -3,20 +3,35 @@ import { NotificationsService } from '../../../core/services/notifications';
 import { AppNotification } from '../../../core/models';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import {
+  LucideBus,
+  LucideClock,
+  LucideCircleCheck,
+  LucideHandCoins,
+  LucideCircleX,
+  LucideBell,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-avisos',
   standalone: true,
-  imports: [Skeleton, EmptyState],
+  imports: [
+    Skeleton,
+    EmptyState,
+    LucideBus,
+    LucideClock,
+    LucideCircleCheck,
+    LucideHandCoins,
+    LucideCircleX,
+    LucideBell,
+  ],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss'
 })
-
 export class Avisos {
   private notificationsService = inject(NotificationsService);
 
   notifications = this.notificationsService.notifications;
-
   selectedNotification = signal<AppNotification | null>(null);
 
   get unreadCount(): number {
@@ -51,11 +66,11 @@ export class Avisos {
 
   iconFor(titulo: string): string {
     const t = titulo.toLowerCase();
-    if (t.includes('llega')) return '🚌';
-    if (t.includes('retraso')) return '⏱';
-    if (t.includes('reserva') || t.includes('confirm')) return '✅';
-    if (t.includes('tarifa') || t.includes('precio')) return '💰';
-    if (t.includes('cancel')) return '❌';
-    return '🔔';
+    if (t.includes('llega')) return 'bus';
+    if (t.includes('retraso')) return 'clock';
+    if (t.includes('reserva') || t.includes('confirm')) return 'check';
+    if (t.includes('tarifa') || t.includes('precio')) return 'coins';
+    if (t.includes('cancel')) return 'x';
+    return 'bell';
   }
 }

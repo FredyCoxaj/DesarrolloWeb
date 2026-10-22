@@ -1,1 +1,27 @@
-<router-outlet />
+@if (showSplash()) {
+  <div class="fixed inset-0 z-[9999] bg-gradient-to-br from-primary via-blue-900 to-primary flex flex-col items-center justify-center">
+
+    <img
+      src="/icons/logo-a.svg"
+      alt="RutaBus GT"
+      class="w-28 h-28 animate-splash-logo drop-shadow-2xl"
+    />
+
+    <h1 class="text-white text-3xl font-bold mt-5 animate-fade-in-slow tracking-tight">
+      RutaBus GT
+    </h1>
+    <p class="text-blue-100 text-sm mt-1 animate-fade-in-slow">
+      Amatitlán & Sur
+    </p>
+
+    <div class="mt-10 w-56 h-1.5 bg-white/20 rounded-full overflow-hidden">
+      <div class="h-full bg-accent rounded-full animate-splash-progress"></div>
+    </div>
+
+    <p class="text-blue-100/60 text-xs mt-6 animate-fade-in-slow">
+      Iniciando...
+    </p>
+  </div>
+} @else {
+  <router-outlet />
+}

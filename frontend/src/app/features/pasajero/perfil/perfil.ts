@@ -4,11 +4,12 @@ import { Router } from '@angular/router';
 import { UsersService } from '../../../core/services/users';
 import { Auth } from '../../../core/services/auth';
 import { User } from '../../../core/models';
+import { LucidePencil, LucideCircleX } from '@lucide/angular';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, LucidePencil, LucideCircleX],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss'
 })
@@ -22,7 +23,6 @@ export class Perfil implements OnInit {
   saving = signal(false);
   message = signal<{ type: 'ok' | 'error'; text: string } | null>(null);
 
-  // Campos editables
   nombre = '';
   email = '';
   telefono = '';

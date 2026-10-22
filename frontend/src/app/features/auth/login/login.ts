@@ -2,11 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
+import { LucideArrowRight } from '@lucide/angular';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LucideArrowRight],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
@@ -22,14 +23,11 @@ export class Login {
   onIdentifierInput(event: Event) {
     const input = event.target as HTMLInputElement;
     const value = input.value;
-
-    // Si empieza con dígito → es DPI, solo números, máximo 13
     if (/^\d/.test(value)) {
       const cleaned = value.replace(/\D/g, '').slice(0, 13);
       if (input.value !== cleaned) input.value = cleaned;
       this.identifier = cleaned;
     } else {
-      // Es correo → limitar a 100 caracteres
       const cleaned = value.slice(0, 100);
       if (input.value !== cleaned) input.value = cleaned;
       this.identifier = cleaned;

@@ -1,5 +1,17 @@
 <div class="bg-white rounded-xl p-8 text-center shadow-sm animate-fade-in">
-  <p class="text-gray-300 text-5xl mb-3">{{ icon }}</p>
+  <div class="text-gray-300 mb-3 flex justify-center">
+    @if (icon === 'ticket') {
+      <svg lucideTicket class="w-12 h-12""></svg>
+    } @else if (icon === 'search') {
+      <svg lucideSearch class="w-12 h-12"></svg>
+    } @else if (icon === 'bell') {
+      <svg lucideBell class="w-12 h-12"></svg>
+    } @else if (icon === 'ban') {
+      <svg lucideBan class="w-12 h-12"></svg>
+    } @else {
+      <span class="text-5xl">{{ icon }}</span>
+    }
+  </div>
   <h3 class="text-gray-700 font-semibold mb-1">{{ title }}</h3>
   @if (message) {
     <p class="text-gray-500 text-sm">{{ message }}</p>
@@ -7,9 +19,10 @@
   @if (actionLabel) {
     <button
       (click)="actionClick.emit()"
-      class="mt-4 bg-primary text-white font-semibold px-5 py-2 rounded-lg text-sm hover:bg-blue-800 transition"
+      class="mt-4 bg-primary text-white font-semibold px-5 py-2 rounded-lg text-sm hover:bg-blue-800 transition inline-flex items-center gap-1.5"
     >
       {{ actionLabel }}
+      <svg lucideArrowRight class="w-[14px] h-[14px]"></svg>
     </button>
   }
 </div>

@@ -33,7 +33,7 @@ import { AdminReportes } from './features/admin/reportes/reportes';
 import { AdminAlertas } from './features/admin/alertas/alertas';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'pasajero/mapa', pathMatch: 'full' },
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
   {
     path: 'auth',
     component: AuthLayout,
