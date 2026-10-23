@@ -15,43 +15,45 @@ export class Login {
   private auth = inject(Auth);
   private router = inject(Router);
 
-  identifier = '';
+  dpi = '';
   password = '';
   loading = signal(false);
   error = signal<string | null>(null);
 
-  onIdentifierInput(event: Event) {
+  // Validación DPI: solo números, exactamente 13
+  onDpiInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    const value = input.value;
-    if (/^\d/.test(value)) {
-      const cleaned = value.replace(/\D/g, '').slice(0, 13);
-      if (input.value !== cleaned) input.value = cleaned;
-      this.identifier = cleaned;
-    } else {
-      const cleaned = value.slice(0, 100);
-      if (input.value !== cleaned) input.value = cleaned;
-      this.identifier = cleaned;
-    }
+    const cleaned = input.value.replace(/\D/g, '').slice(0, 13);
+    if (input.value !== cleaned) input.value = cleaned;
+    this.dpi = cleaned;
+  }
+
+  get dpiValido(): boolean {
+    return /^\d{13}$/.test(this.dpi);
   }
 
   onSubmit() {
-    if (!this.identifier || !this.password) {
-      this.error.set('Completa todos los campos');
+    if (!this.dpiValido || !this.password) {
+      this.error.set('Completa todos los campos correctamente');
       return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
-    this.auth.login({ identifier: this.identifier, password: this.password })
+    this.auth.login({ dpi: this.dpi, password: this.password })
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.loading.set(false);
-          this.router.navigate(['/pasajero/mapa']);
+          // Redirección por rol
+          const rol = res.user.rol;
+          if (rol === 'ADMIN') this.router.navigate(['/admin/dashboard']);
+          else if (rol === 'CHOFER') this.router.navigate(['/chofer/viaje']);
+          else this.router.navigate(['/pasajero/mapa']);
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err.message || 'Error al iniciar sesión');
+          this.error.set(err.message || 'DPI o contraseña incorrectos');
         }
       });
   }

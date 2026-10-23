@@ -1,34 +1,39 @@
 export type UserRole = 'PASAJERO' | 'CHOFER' | 'ADMIN';
+export type PncStatus = 'PENDIENTE' | 'VERIFICADO' | 'CON_ANTECEDENTES' | 'RECHAZADO';
 
 export interface User {
   id: string;
   dpi: string;
   nombre: string;
-  email: string;
+  apellido: string;
+  email?: string;
   telefono?: string;
   rol: UserRole;
-  dpiVerificado: boolean;
-  tutorId?: string;
+  pncStatus: PncStatus;
+  esMenor: boolean;
   fechaNacimiento?: string;
+  tutorDpi?: string;
+  fotoUrl?: string;
+  activo?: boolean;
 }
 
 export interface RegisterDto {
   dpi: string;
   nombre: string;
-  email: string;
-  password: string;
+  apellido: string;
+  email?: string;
   telefono?: string;
-  fechaNacimiento: string;
-  tutorId?: string;
+  password: string;
+  fechaNacimiento?: string;
+  tutorDpi?: string;
 }
 
 export interface LoginDto {
-  identifier: string; // DPI o email
+  dpi: string;
   password: string;
 }
 
 export interface AuthResponseDto {
   accessToken: string;
-  refreshToken: string;
   user: User;
 }

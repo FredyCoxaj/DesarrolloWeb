@@ -1,9 +1,15 @@
+export type TripEstado = 'PROGRAMADO' | 'EN_CURSO' | 'COMPLETADO' | 'CANCELADO';
+
 export interface Trip {
   id: string;
+  routeId: string;
   busId: string;
   choferId: string;
-  routeId: string;
-  horaSalida: string;
-  estado: 'PROGRAMADO' | 'EN_CURSO' | 'FINALIZADO' | 'CANCELADO';
-  eta?: number;
+  fechaSalida: string;
+  fechaLlegada?: string;
+  estado: TripEstado;
+  asientosOcupados: number;
+  etaMin?: number;
+  createdAt: string;
+  updatedAt: string;
 }

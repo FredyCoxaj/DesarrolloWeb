@@ -1,8 +1,14 @@
+export type BusEstado = 'ACTIVO' | 'MANTENIMIENTO' | 'FUERA_SERVICIO';
+
 export interface Bus {
   id: string;
   placa: string;
+  marca?: string;
+  modelo?: string;
+  anio?: number;
   capacidad: number;
-  modelo: string;
-  anio: number;
-  estado: 'ACTIVO' | 'MANTENIMIENTO' | 'FUERA_SERVICIO';
+  filas: number;
+  columnas: number;
+  estado: BusEstado;
+  fotoUrl?: string;
 }

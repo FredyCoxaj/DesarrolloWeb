@@ -8,10 +8,12 @@
     </label>
     <input
       type="text"
-      [value]="identifier"
-      (input)="onIdentifierInput($event)"
-      name="identifier"
+      [value]="dpi"
+      (input)="onDpiInput($event)"
+      name="dpi"
       placeholder="1234567890101"
+      maxlength="13"
+      inputmode="numeric"
       autocomplete="username"
       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
     />
