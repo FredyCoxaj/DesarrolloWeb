@@ -41,6 +41,26 @@ export class RoutesController {
   }
 
   // ============================================
+  // GENERAR CAMINO DE CALLES CON DIJKSTRA (público)
+  // ============================================
+  @Public()
+  @Post('camino-calles')
+  @HttpCode(HttpStatus.OK)
+  generarCaminoCalles(@Body() stops: any[]) {
+    return this.routesService.generarCaminoCalles(stops);
+  }
+
+  // ============================================
+  // OBTENER CAMINO DE CALLES DE UNA RUTA (público)
+  // ============================================
+  @Public()
+  @Get(':id/camino')
+  generarCaminoRuta(@Param('id') id: string) {
+    return this.routesService.generarCaminoRuta(id);
+  }
+
+
+  // ============================================
   // CALCULAR PRECIO POR TRAMO (público)
   // ============================================
   @Public()

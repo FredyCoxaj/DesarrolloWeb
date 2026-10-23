@@ -105,13 +105,24 @@ export class ViajeActivo implements AfterViewInit, OnDestroy {
         .addTo(this.map)
         .bindPopup(`<strong>Bus ${this.trip().busPlaca}</strong><br>Velocidad en vivo`);
 
-      // Polyline para la trayectoria
+      // Polyline base de la ruta completa según calles (Dijkstra)
+      const routeCoords = this.gpsService.getRouteStreetPolyline(this.trip().rutaId || 'r1');
+      if (routeCoords && routeCoords.length > 0) {
+        leaflet.polyline(routeCoords, {
+          color: '#94A3B8',
+          weight: 4,
+          opacity: 0.7,
+          dashArray: '4, 4',
+        }).addTo(this.map).bindTooltip('Ruta Asignada (Dijkstra)', { sticky: true });
+      }
+
+      // Polyline para la trayectoria en vivo recorrida en el asfalto
       this.polyline = leaflet.polyline([], {
         color: '#F59E0B',
         weight: 4,
-        opacity: 0.8,
-        dashArray: '6, 6',
+        opacity: 0.9,
       }).addTo(this.map);
+
 
       // Actualizar posición del bus en mapa en tiempo real
       this.refreshSub = setInterval(() => {

@@ -224,4 +224,45 @@ export class RoutesService {
       duracionSugeridaMin: Math.ceil(distancia * 2),
     };
   }
-}
+
+  // ============================================
+  // GENERAR CAMINO DE CALLES CON DIJKSTRA (público)
+  // ============================================
+  async generarCaminoCalles(stops: any[]) {
+    if (!stops || stops.length < 2) {
+      throw new BadRequestException('Se necesitan al menos 2 paradas para calcular el camino');
+    }
+    const camino = this.pathfindingService.generarRutaCallesCompleta(stops);
+    const distancia = this.pathfindingService.calcularDistanciaRuta(stops);
+    return {
+      totalPuntos: camino.length,
+      distanciaKm: distancia,
+      camino,
+    };
+  }
+
+  // ============================================
+  // GENERAR CAMINO DE CALLES PARA UNA RUTA POR ID
+  // ============================================
+  async generarCaminoRuta(id: string) {
+    const route = await this.findOne(id);
+    if (!route.stops || route.stops.length < 2) {
+      return {
+        id: route.id,
+        nombre: route.nombre,
+        distanciaKm: 0,
+        camino: [],
+      };
+    }
+    const stops = route.stops.map((s) => ({ lat: s.latitud, lng: s.longitud }));
+    const camino = this.pathfindingService.generarRutaCallesCompleta(stops);
+    const distancia = this.pathfindingService.calcularDistanciaRuta(stops);
+    return {
+      id: route.id,
+      nombre: route.nombre,
+      distanciaKm: distancia,
+      totalPuntos: camino.length,
+      camino,
+    };
+  }
+}

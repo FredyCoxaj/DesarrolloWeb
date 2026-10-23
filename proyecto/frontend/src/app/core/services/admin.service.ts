@@ -33,11 +33,33 @@ export interface BusRevenueSummary {
   busId: string;
   placa: string;
   rutaNombre: string;
+  municipios: string[];
   ingresosHoy: number;
+  ingresosAyer: number;
   ingresosSemana: number;
   ingresosMes: number;
+  ingresosAnio: number;
+  viajesHoy: number;
+  viajesSemana: number;
   viajesMes: number;
+  viajesAnio: number;
 }
+
+export interface CancellationRecord {
+  id: string;
+  motivo: string;
+  categoria: 'OPERATIVOS' | 'MECANICAS' | 'USUARIO' | 'CLIMA_BLOQUEO';
+  categoriaNombre: string;
+  severidad: 'ALTA' | 'MEDIA' | 'BAJA';
+  busPlaca: string;
+  rutaNombre: string;
+  municipio: string;
+  fecha: string;
+  pasajerosAfectados: number;
+  reembolsoQ: number;
+  descripcion: string;
+}
+
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -101,22 +123,252 @@ export class AdminService {
     { dia: 'Dom (Hoy)', ingresos: 4280, viajes: 48 },
   ]);
 
-  // Resumen de ingresos por bus (F12)
+  // Resumen de ingresos por bus (F12) con métricas multi-período y municipios
   readonly busRevenueSummaries = signal<BusRevenueSummary[]>([
-    { busId: 'b1', placa: 'M-101ABC', rutaNombre: 'Amatitlán → Villa Nueva', ingresosHoy: 950.00, ingresosSemana: 6400.00, ingresosMes: 26500.00, viajesMes: 280 },
-    { busId: 'b2', placa: 'M-202DEF', rutaNombre: 'Villa Nueva → Zona 12', ingresosHoy: 1250.00, ingresosSemana: 8500.00, ingresosMes: 34100.00, viajesMes: 310 },
-    { busId: 'b3', placa: 'M-303GHI', rutaNombre: 'Amatitlán → Mixco', ingresosHoy: 1100.00, ingresosSemana: 7800.00, ingresosMes: 30200.00, viajesMes: 240 },
-    { busId: 'b4', placa: 'M-404JKL', rutaNombre: 'Amatitlán → Petapa', ingresosHoy: 480.00, ingresosSemana: 3600.00, ingresosMes: 15400.00, viajesMes: 190 },
-    { busId: 'b5', placa: 'M-505MNO', rutaNombre: 'Amatitlán → Villa Nueva', ingresosHoy: 500.00, ingresosSemana: 4200.00, ingresosMes: 18000.00, viajesMes: 210 },
+    {
+      busId: 'b1',
+      placa: 'M-101ABC',
+      rutaNombre: 'Amatitlán → Villa Nueva',
+      municipios: ['Amatitlán', 'Villa Nueva'],
+      ingresosHoy: 950.00,
+      ingresosAyer: 880.00,
+      ingresosSemana: 6400.00,
+      ingresosMes: 26500.00,
+      ingresosAnio: 295000.00,
+      viajesHoy: 10,
+      viajesSemana: 68,
+      viajesMes: 280,
+      viajesAnio: 3100,
+    },
+    {
+      busId: 'b2',
+      placa: 'M-202DEF',
+      rutaNombre: 'Villa Nueva → Zona 12',
+      municipios: ['Villa Nueva', 'Zona 12'],
+      ingresosHoy: 1250.00,
+      ingresosAyer: 1180.00,
+      ingresosSemana: 8500.00,
+      ingresosMes: 34100.00,
+      ingresosAnio: 382000.00,
+      viajesHoy: 12,
+      viajesSemana: 76,
+      viajesMes: 310,
+      viajesAnio: 3450,
+    },
+    {
+      busId: 'b3',
+      placa: 'M-303GHI',
+      rutaNombre: 'Amatitlán → Mixco',
+      municipios: ['Amatitlán', 'Mixco'],
+      ingresosHoy: 1100.00,
+      ingresosAyer: 1050.00,
+      ingresosSemana: 7800.00,
+      ingresosMes: 30200.00,
+      ingresosAnio: 335000.00,
+      viajesHoy: 9,
+      viajesSemana: 60,
+      viajesMes: 240,
+      viajesAnio: 2700,
+    },
+    {
+      busId: 'b4',
+      placa: 'M-404JKL',
+      rutaNombre: 'Amatitlán → Petapa',
+      municipios: ['Amatitlán', 'Petapa'],
+      ingresosHoy: 480.00,
+      ingresosAyer: 460.00,
+      ingresosSemana: 3600.00,
+      ingresosMes: 15400.00,
+      ingresosAnio: 172000.00,
+      viajesHoy: 6,
+      viajesSemana: 45,
+      viajesMes: 190,
+      viajesAnio: 2150,
+    },
+    {
+      busId: 'b5',
+      placa: 'M-505MNO',
+      rutaNombre: 'Amatitlán → Villa Nueva',
+      municipios: ['Amatitlán', 'Villa Nueva'],
+      ingresosHoy: 500.00,
+      ingresosAyer: 520.00,
+      ingresosSemana: 4200.00,
+      ingresosMes: 18000.00,
+      ingresosAnio: 201000.00,
+      viajesHoy: 7,
+      viajesSemana: 50,
+      viajesMes: 210,
+      viajesAnio: 2350,
+    },
+    {
+      busId: 'b6',
+      placa: 'M-606PQR',
+      rutaNombre: 'Villa Nueva → Zona 12',
+      municipios: ['Villa Nueva', 'Zona 12'],
+      ingresosHoy: 420.00,
+      ingresosAyer: 390.00,
+      ingresosSemana: 3100.00,
+      ingresosMes: 13200.00,
+      ingresosAnio: 148000.00,
+      viajesHoy: 5,
+      viajesSemana: 38,
+      viajesMes: 160,
+      viajesAnio: 1800,
+    },
   ]);
 
-  // Motivos de cancelación (F12)
-  readonly cancellationsSummary = signal([
-    { motivo: 'Retraso de tráfico severo', cantidad: 14, porcentaje: 45 },
-    { motivo: 'Falla o avería mecánica', cantidad: 8, porcentaje: 26 },
-    { motivo: 'Cambio de planes del usuario', cantidad: 6, porcentaje: 19 },
-    { motivo: 'Otro / Emergencia', cantidad: 3, porcentaje: 10 },
+  // Registro detallado de cancelaciones e incidencias (F12)
+  readonly cancellationRecords = signal<CancellationRecord[]>([
+    {
+      id: 'can-1',
+      motivo: 'Retraso de tráfico severo en Cuesta de Villalobos',
+      categoria: 'OPERATIVOS',
+      categoriaNombre: 'Problemas Operativos (Tráfico)',
+      severidad: 'ALTA',
+      busPlaca: 'M-101ABC',
+      rutaNombre: 'Amatitlán → Villa Nueva',
+      municipio: 'Villa Nueva',
+      fecha: '2026-10-22 08:30',
+      pasajerosAfectados: 36,
+      reembolsoQ: 180.00,
+      descripcion: 'Congestionamiento de 45 minutos impidió completar el tramo matutino.',
+    },
+    {
+      id: 'can-2',
+      motivo: 'Falla mecánica en sistema de frenos',
+      categoria: 'MECANICAS',
+      categoriaNombre: 'Fallas Mecánicas',
+      severidad: 'ALTA',
+      busPlaca: 'M-404JKL',
+      rutaNombre: 'Amatitlán → Petapa',
+      municipio: 'Amatitlán',
+      fecha: '2026-10-22 09:15',
+      pasajerosAfectados: 28,
+      reembolsoQ: 280.00,
+      descripcion: 'Avería neumática requirió envío de unidad de auxilio técnico.',
+    },
+    {
+      id: 'can-3',
+      motivo: 'Tráfico pesado en paso a desnivel Naciones Unidas',
+      categoria: 'OPERATIVOS',
+      categoriaNombre: 'Problemas Operativos (Tráfico)',
+      severidad: 'MEDIA',
+      busPlaca: 'M-202DEF',
+      rutaNombre: 'Villa Nueva → Zona 12',
+      municipio: 'Villa Nueva',
+      fecha: '2026-10-21 17:40',
+      pasajerosAfectados: 24,
+      reembolsoQ: 180.00,
+      descripcion: 'Colisión menor ajena al bus bloqueó ambos carriles durante 30 min.',
+    },
+    {
+      id: 'can-4',
+      motivo: 'Cambio de planes del usuario / Desistimiento',
+      categoria: 'USUARIO',
+      categoriaNombre: 'Factores del Usuario',
+      severidad: 'BAJA',
+      busPlaca: 'M-303GHI',
+      rutaNombre: 'Amatitlán → Mixco',
+      municipio: 'Amatitlán',
+      fecha: '2026-10-21 14:10',
+      pasajerosAfectados: 5,
+      reembolsoQ: 50.00,
+      descripcion: 'Pasajeros cancelaron reserva por cambio de horario de reunión.',
+    },
+    {
+      id: 'can-5',
+      motivo: 'Falla de alternador eléctrico en terminal',
+      categoria: 'MECANICAS',
+      categoriaNombre: 'Fallas Mecánicas',
+      severidad: 'ALTA',
+      busPlaca: 'M-606PQR',
+      rutaNombre: 'Villa Nueva → Zona 12',
+      municipio: 'Zona 12',
+      fecha: '2026-10-20 06:45',
+      pasajerosAfectados: 32,
+      reembolsoQ: 240.00,
+      descripcion: 'El bus no encendió al iniciar primer turno de la mañana.',
+    },
+    {
+      id: 'can-6',
+      motivo: 'Bloqueo o manifestación en Calzada Roosevelt',
+      categoria: 'CLIMA_BLOQUEO',
+      categoriaNombre: 'Clima / Bloqueos',
+      severidad: 'ALTA',
+      busPlaca: 'M-303GHI',
+      rutaNombre: 'Amatitlán → Mixco',
+      municipio: 'Mixco',
+      fecha: '2026-10-19 11:20',
+      pasajerosAfectados: 30,
+      reembolsoQ: 300.00,
+      descripcion: 'Cierre total de paso en El Campanero obligó a cancelar el retorno.',
+    },
+    {
+      id: 'can-7',
+      motivo: 'Lluvias torrenciales y acumulación de agua',
+      categoria: 'CLIMA_BLOQUEO',
+      categoriaNombre: 'Clima / Bloqueos',
+      severidad: 'MEDIA',
+      busPlaca: 'M-404JKL',
+      rutaNombre: 'Amatitlán → Petapa',
+      municipio: 'Petapa',
+      fecha: '2026-10-18 16:30',
+      pasajerosAfectados: 20,
+      reembolsoQ: 80.00,
+      descripcion: 'Inundación temporal en Boulevard El Frutal.',
+    },
+    {
+      id: 'can-8',
+      motivo: 'Confusión de parada por parte de usuarios',
+      categoria: 'USUARIO',
+      categoriaNombre: 'Factores del Usuario',
+      severidad: 'BAJA',
+      busPlaca: 'M-505MNO',
+      rutaNombre: 'Amatitlán → Villa Nueva',
+      municipio: 'Amatitlán',
+      fecha: '2026-10-18 13:00',
+      pasajerosAfectados: 3,
+      reembolsoQ: 15.00,
+      descripcion: 'Grupo de pasajeros perdió el abordaje por no presentarse en la parada pactada.',
+    },
+    {
+      id: 'can-9',
+      motivo: 'Desperfecto en neumático trasero',
+      categoria: 'MECANICAS',
+      categoriaNombre: 'Fallas Mecánicas',
+      severidad: 'MEDIA',
+      busPlaca: 'M-101ABC',
+      rutaNombre: 'Amatitlán → Villa Nueva',
+      municipio: 'Amatitlán',
+      fecha: '2026-10-16 10:15',
+      pasajerosAfectados: 18,
+      reembolsoQ: 90.00,
+      descripcion: 'Pinchazo en CA-9 Sur km 27 solventado en 25 minutos.',
+    },
+    {
+      id: 'can-10',
+      motivo: 'Congestión vehicular extrema en Aguilar Batres',
+      categoria: 'OPERATIVOS',
+      categoriaNombre: 'Problemas Operativos (Tráfico)',
+      severidad: 'MEDIA',
+      busPlaca: 'M-202DEF',
+      rutaNombre: 'Villa Nueva → Zona 12',
+      municipio: 'Zona 12',
+      fecha: '2026-10-15 18:20',
+      pasajerosAfectados: 22,
+      reembolsoQ: 165.00,
+      descripcion: 'Tráfico de hora pico provocó retraso mayor a 50 min en CENMA.',
+    },
   ]);
+
+  // Motivos consolidados de cancelación (F12)
+  readonly cancellationsSummary = signal([
+    { motivo: 'Problemas Operativos (Tráfico)', cantidad: 14, porcentaje: 45 },
+    { motivo: 'Fallas Mecánicas', cantidad: 8, porcentaje: 26 },
+    { motivo: 'Factores del Usuario', cantidad: 6, porcentaje: 19 },
+    { motivo: 'Clima / Bloqueos', cantidad: 3, porcentaje: 10 },
+  ]);
+
 
   // Alertas del sistema conectadas al GpsService
   get alerts() {
@@ -171,22 +423,47 @@ export class AdminService {
 
   /**
    * Exporta reporte de ingresos y viajes en formato CSV descargable (F12)
+   * Si se pasa filteredData, exporta únicamente las filas y métricas que están filtradas en pantalla.
    */
-  exportReportCsv() {
-    const headers = 'Placa,Ruta,Ingresos Hoy (GTQ),Ingresos Semana (GTQ),Ingresos Mes (GTQ),Viajes Mes\n';
-    const rows = this.busRevenueSummaries()
+  exportReportCsv(
+    filteredData?: {
+      placa: string;
+      rutaNombre: string;
+      municipiosTexto?: string;
+      ingresosPeriodo: number;
+      viajesPeriodo: number;
+      promedioPorViaje: number;
+    }[],
+    periodLabel = 'Últimos 30 días'
+  ) {
+    const headers = 'Placa,Ruta Principal,Municipios,Período Analizado,Ingresos (GTQ),Viajes Realizados,Promedio por Viaje (GTQ)\n';
+    const dataToExport =
+      filteredData ||
+      this.busRevenueSummaries().map((b) => ({
+        placa: b.placa,
+        rutaNombre: b.rutaNombre,
+        municipiosTexto: b.municipios?.join(' - ') || 'Metropolitana',
+        ingresosPeriodo: b.ingresosMes,
+        viajesPeriodo: b.viajesMes,
+        promedioPorViaje: b.viajesMes > 0 ? b.ingresosMes / b.viajesMes : 0,
+      }));
+
+    const rows = dataToExport
       .map(
         (b) =>
-          `"${b.placa}","${b.rutaNombre}",${b.ingresosHoy.toFixed(2)},${b.ingresosSemana.toFixed(2)},${b.ingresosMes.toFixed(2)},${b.viajesMes}`
+          `"${b.placa}","${b.rutaNombre}","${b.municipiosTexto || 'Metropolitana'}","${periodLabel}",${b.ingresosPeriodo.toFixed(2)},${b.viajesPeriodo},${b.promedioPorViaje.toFixed(2)}`
       )
       .join('\n');
 
     const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(headers + rows);
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', csvContent);
-    downloadAnchor.setAttribute('download', `reporte_rutabus_ingresos_${new Date().toISOString().slice(0, 10)}.csv`);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const cleanPeriod = periodLabel.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    downloadAnchor.setAttribute('download', `reporte_rutabus_${cleanPeriod}_${dateStr}.csv`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
   }
 }
+

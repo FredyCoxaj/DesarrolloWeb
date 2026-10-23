@@ -3,6 +3,7 @@ import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../../environments/environment';
 import { Auth } from './auth';
+import { DijkstraRoutingService } from './dijkstra-routing.service';
 import { GpsPosition, Incident, CreateIncidentDto, AdminAlert } from '../models';
 
 export interface RouteWaypoint {
@@ -14,6 +15,7 @@ export interface RouteWaypoint {
 @Injectable({ providedIn: 'root' })
 export class GpsService {
   private auth = inject(Auth);
+  private dijkstraRouting = inject(DijkstraRoutingService);
   private socket: Socket | null = null;
   private simulationInterval: any = null;
 
@@ -180,43 +182,68 @@ export class GpsService {
   readonly newAlert$ = new Subject<AdminAlert>();
   readonly newIncident$ = new Subject<Incident>();
 
-  // Waypoints predefinidos para la simulación
-  private routeWaypoints: Record<string, [number, number][]> = {
-    r1: [
-      [14.4769, -90.6347],
-      [14.4805, -90.6280],
-      [14.4920, -90.6150],
-      [14.5050, -90.6020],
-      [14.5150, -90.5920],
-      [14.5250, -90.5870],
-    ],
-    r2: [
-      [14.5250, -90.5870],
-      [14.5420, -90.5730],
-      [14.5600, -90.5610],
-      [14.5800, -90.5500],
-      [14.5950, -90.5400],
-    ],
-    r3: [
-      [14.4769, -90.6347],
-      [14.5020, -90.5610],
-      [14.5450, -90.5800],
-      [14.5900, -90.5950],
-      [14.6350, -90.6100],
-    ],
-    r4: [
-      [14.4769, -90.6347],
-      [14.4890, -90.6050],
-      [14.5020, -90.5610],
-    ],
-  };
-
-  private currentWpIdx: Record<string, number> = { b1: 1, b2: 1, b3: 1, b4: 0 };
+  // Waypoints de calles generados mediante Dijkstra
+  private routeWaypoints: Record<string, [number, number][]> = {};
+  private currentWpIdx: Record<string, number> = { b1: 5, b2: 6, b3: 8, b4: 3 };
+  private routeDirections: Record<string, 1 | -1> = { b1: 1, b2: 1, b3: 1, b4: 1 };
 
   constructor() {
+    this.initRouteWaypoints();
     this.initSocket();
     this.startSimulation();
   }
+
+  /**
+   * Carga las coordenadas de calles exactas calculadas por Dijkstra para cada ruta
+   */
+  private initRouteWaypoints() {
+    this.routeWaypoints = {
+      r1: this.dijkstraRouting.getRouteStreetCoordinates('r1'),
+      r2: this.dijkstraRouting.getRouteStreetCoordinates('r2'),
+      r3: this.dijkstraRouting.getRouteStreetCoordinates('r3'),
+      r4: this.dijkstraRouting.getRouteStreetCoordinates('r4'),
+    };
+
+    // Ubicar los buses en sus puntos de inicio en la calle
+    const r1 = this.routeWaypoints['r1'] || [];
+    const r2 = this.routeWaypoints['r2'] || [];
+    const r3 = this.routeWaypoints['r3'] || [];
+    const r4 = this.routeWaypoints['r4'] || [];
+
+    if (r1.length > 5) {
+      this.currentWpIdx['b1'] = 5;
+      this.busHistories.set('b1', r1.slice(0, 6));
+    }
+    if (r2.length > 6) {
+      this.currentWpIdx['b2'] = 6;
+      this.busHistories.set('b2', r2.slice(0, 7));
+    }
+    if (r3.length > 8) {
+      this.currentWpIdx['b3'] = 8;
+      this.busHistories.set('b3', r3.slice(0, 9));
+    }
+    if (r4.length > 3) {
+      this.currentWpIdx['b4'] = 3;
+      this.busHistories.set('b4', r4.slice(0, 4));
+    }
+
+    // Actualizar coordenadas iniciales en los buses para que arranquen en la calle
+    const updated = this.buses().map((bus) => {
+      const wps = this.routeWaypoints[bus.rutaId] || r1;
+      const idx = this.currentWpIdx[bus.busId] || 0;
+      if (wps && wps[idx]) {
+        return {
+          ...bus,
+          lat: wps[idx][0],
+          lng: wps[idx][1],
+        };
+      }
+      return bus;
+    });
+
+    this.buses.set(updated);
+  }
+
 
   /**
    * Inicializa la conexión con el Socket.io backend
@@ -299,7 +326,8 @@ export class GpsService {
   }
 
   /**
-   * Avanza la posición de cada bus en la simulación
+   * Avanza la posición de cada bus en la simulación siguiendo estrictamente las calles
+   * obtenidas mediante el algoritmo de Dijkstra.
    */
   private stepSimulation() {
     const updated = this.buses().map((bus) => {
@@ -308,38 +336,55 @@ export class GpsService {
       }
 
       const wps = this.routeWaypoints[bus.rutaId] || this.routeWaypoints['r1'];
-      const currentIdx = this.currentWpIdx[bus.busId] || 0;
-      const targetIdx = (currentIdx + 1) % wps.length;
-      const target = wps[targetIdx];
+      if (!wps || wps.length === 0) return bus;
 
-      // Pequeño paso interpolado hacia el waypoint
-      const factor = 0.08;
-      const newLat = bus.lat + (target[0] - bus.lat) * factor;
-      const newLng = bus.lng + (target[1] - bus.lng) * factor;
+      const currentIdx = this.currentWpIdx[bus.busId] ?? 0;
+      const dir = this.routeDirections[bus.busId] ?? 1;
 
-      // Calcular distancia al objetivo
-      const dist = Math.hypot(target[0] - newLat, target[1] - newLng);
-      if (dist < 0.003) {
-        this.currentWpIdx[bus.busId] = targetIdx;
+      // Calcular nuevo índice en la polilínea de calles (cada punto ~35m sobre la calle)
+      let nextIdx = currentIdx + dir;
+
+      // Si llega al final de la ruta o al principio, dar la vuelta
+      if (nextIdx >= wps.length) {
+        this.routeDirections[bus.busId] = -1;
+        nextIdx = wps.length - 2;
+      } else if (nextIdx < 0) {
+        this.routeDirections[bus.busId] = 1;
+        nextIdx = 1;
       }
 
-      // Guardar historial para el polyline de trayectoria
+      this.currentWpIdx[bus.busId] = nextIdx;
+      const targetPoint = wps[nextIdx];
+      const prevPoint = wps[currentIdx];
+
+      // Calcular rumbo angular (bearing) respecto a la dirección de la calle
+      const dLng = ((targetPoint[1] - prevPoint[1]) * Math.PI) / 180;
+      const lat1Rad = (prevPoint[0] * Math.PI) / 180;
+      const lat2Rad = (targetPoint[0] * Math.PI) / 180;
+      const y = Math.sin(dLng) * Math.cos(lat2Rad);
+      const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+      const rumbo = Math.round(((Math.atan2(y, x) * 180) / Math.PI + 360) % 360);
+
+      // Guardar historial para el polyline de trayectoria real en el asfalto
       const history = this.busHistories.get(bus.busId) || [];
-      history.push([newLat, newLng]);
-      if (history.length > 50) history.shift();
+      history.push(targetPoint);
+      if (history.length > 70) history.shift();
       this.busHistories.set(bus.busId, history);
 
-      // Calcular nuevo ETA y velocidad realista
-      const speedVariation = Math.round(30 + Math.random() * 20);
-      const eta = Math.max(1, (bus.etaMinutos ?? 5) - 0.05);
+      // Variación dinámica de velocidad y ETA en función de la distancia restante
+      const speedVariation = Math.round(34 + Math.random() * 16);
+      const remainingPoints = dir === 1 ? wps.length - 1 - nextIdx : nextIdx;
+      const remainingKm = remainingPoints * 0.035;
+      const eta = Math.max(1, Math.ceil((remainingKm / (speedVariation || 40)) * 60));
 
       return {
         ...bus,
-        lat: Number(newLat.toFixed(6)),
-        lng: Number(newLng.toFixed(6)),
+        lat: targetPoint[0],
+        lng: targetPoint[1],
         velocidadKmh: speedVariation,
+        rumbo,
         timestamp: new Date().toISOString(),
-        etaMinutos: Math.round(eta),
+        etaMinutos: eta,
       };
     });
 
@@ -352,6 +397,14 @@ export class GpsService {
   getBusTrajectory(busId: string): [number, number][] {
     return this.busHistories.get(busId) || [];
   }
+
+  /**
+   * Obtiene la polilínea completa de calles calculada por Dijkstra para una ruta
+   */
+  getRouteStreetPolyline(rutaId: string): [number, number][] {
+    return this.dijkstraRouting.getRouteStreetCoordinates(rutaId);
+  }
+
 
   /**
    * Obtiene la posición de un bus específico

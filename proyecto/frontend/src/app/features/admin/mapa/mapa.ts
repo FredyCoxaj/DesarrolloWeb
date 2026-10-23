@@ -70,17 +70,59 @@ export class AdminMapa implements AfterViewInit, OnDestroy {
         maxZoom: 19,
       }).addTo(this.map);
 
+      // Dibujar polilíneas de calles generadas por Dijkstra
+      this.drawAdminRoutes(leaflet);
+
       // Renderizar marcadores iniciales
       this.syncMarkers(leaflet);
 
       // Actualizar marcadores continuamente cada 3s sin reconstruir mapa (F2 / F10)
       this.updateInterval = setInterval(() => {
         this.syncMarkers(leaflet);
+        this.updateRouteVisibility();
       }, 3000);
     });
   }
 
+  private adminRoutePolylines = new Map<string, any>();
+
+  private drawAdminRoutes(L: any) {
+    if (!this.map) return;
+
+    const routesConfig = [
+      { id: 'r1', color: '#1E3A8A', name: 'Amatitlán → Villa Nueva' },
+      { id: 'r2', color: '#059669', name: 'Villa Nueva → Zona 12' },
+      { id: 'r3', color: '#7C3AED', name: 'Amatitlán → Mixco' },
+      { id: 'r4', color: '#D97706', name: 'Amatitlán → San Miguel Petapa' },
+    ];
+
+    routesConfig.forEach((r) => {
+      const coords = this.gps.getRouteStreetPolyline(r.id);
+      if (coords && coords.length > 0) {
+        const poly = L.polyline(coords, {
+          color: r.color,
+          weight: 4,
+          opacity: 0.6,
+        }).addTo(this.map).bindTooltip(`Ruta: ${r.name}`, { sticky: true });
+
+        this.adminRoutePolylines.set(r.id, poly);
+      }
+    });
+  }
+
+  private updateRouteVisibility() {
+    const filter = this.selectedRouteFilter();
+    this.adminRoutePolylines.forEach((poly, id) => {
+      if (filter === 'TODAS' || filter === id) {
+        poly.setStyle({ opacity: filter === id ? 0.9 : 0.6, weight: filter === id ? 6 : 4 });
+      } else {
+        poly.setStyle({ opacity: 0.15, weight: 2 });
+      }
+    });
+  }
+
   private syncMarkers(L: any) {
+
     if (!this.map) return;
 
     const buses = this.filteredBuses();

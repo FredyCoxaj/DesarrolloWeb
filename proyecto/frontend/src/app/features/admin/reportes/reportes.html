@@ -1,37 +1,201 @@
 <div class="space-y-6">
-  <!-- Header de Reportes y Botón Exportar CSV (F12) - Modo Claro -->
+  <!-- Header de Reportes y Botón Exportar CSV Dinámico (F12) -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
       <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
         <span>📈</span> Reportes Financieros & Rendimiento Operacional
       </h2>
-      <p class="text-xs text-gray-500">
-        Rendimiento económico por unidad de bus, motivos de cancelación y exportación de datos
+      <p class="text-xs text-gray-500 mt-1">
+        Herramienta analítica de ingresos por unidad, incidencias y comparativa de flota en Amatitlán y municipios del Sur
       </p>
     </div>
 
-    <button
-      (click)="exportCsv()"
-      class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
-    >
-      <span>📥 Descargar Reporte CSV</span>
-    </button>
+    <div class="flex items-center gap-3">
+      <button
+        (click)="exportCsv()"
+        [disabled]="filteredSummaries().length === 0"
+        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Exporta solo los datos que coinciden con los filtros actuales"
+      >
+        <span>📥 Descargar Reporte CSV</span>
+        <span class="bg-emerald-800/60 text-emerald-100 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+          {{ filteredSummaries().length }} filas
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 1. FILTROS GLOBALES (Barra de Control Superior Fija / Sticky) -->
+  <div class="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3.5 transition-all">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+          <span>⚙️</span> Filtros Globales
+        </span>
+        @if (activeFiltersCount() > 0) {
+          <span class="bg-blue-100 text-primary font-bold text-[10px] px-2 py-0.5 rounded-full border border-blue-200">
+            {{ activeFiltersCount() }} filtro(s) activo(s)
+          </span>
+        }
+      </div>
+
+      <!-- Botón Limpiar Filtros (Reset All) -->
+      @if (activeFiltersCount() > 0) {
+        <button
+          (click)="resetAllFilters()"
+          class="inline-flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 px-3 py-1.5 rounded-xl font-bold border border-rose-200 transition-colors cursor-pointer w-fit"
+        >
+          <span>🔄</span> Limpiar Todos los Filtros
+        </button>
+      }
+    </div>
+
+    <!-- Controles de Filtro Globales -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <!-- Selector de Período Temporal -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+          <span>🗓️</span> Período Temporal:
+        </label>
+        <select
+          [(ngModel)]="selectedPeriod"
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all font-medium"
+        >
+          <option value="HOY">Hoy (22 Octubre)</option>
+          <option value="AYER">Ayer (21 Octubre)</option>
+          <option value="ULTIMOS_7_DIAS">Últimos 7 días</option>
+          <option value="ULTIMOS_30_DIAS">Últimos 30 días (Mes)</option>
+          <option value="ESTE_MES">Este Mes (Octubre)</option>
+          <option value="ANIO_A_LA_FECHA">Año a la fecha (2026)</option>
+          <option value="PERSONALIZADO">📅 Rango Personalizado...</option>
+        </select>
+      </div>
+
+      <!-- Filtro por Municipio / Zona -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+          <span>📍</span> Municipio / Zona:
+        </label>
+        <select
+          [(ngModel)]="selectedMunicipality"
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all font-medium"
+        >
+          @for (m of availableMunicipalities; track m.id) {
+            <option [value]="m.id">{{ m.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro por Ruta Principal -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+          <span>🛣️</span> Ruta Principal:
+        </label>
+        <select
+          [(ngModel)]="selectedMainRoute"
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all font-medium"
+        >
+          @for (r of availableRoutes; track r.id) {
+            <option [value]="r.id">{{ r.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Selector de Desempeño Rápido -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+          <span>⚡</span> Desempeño:
+        </label>
+        <select
+          [(ngModel)]="selectedPerformance"
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all font-medium"
+        >
+          <option value="TODOS">Todos los rendimientos</option>
+          <option value="TOP_5_INGRESOS">🏆 Top 5 mayores ingresos</option>
+          <option value="MENOR_RENDIMIENTO">📉 Menor rendimiento</option>
+          <option value="MAS_200_VIAJES">🚌 Unidades con más de 200 viajes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Rango Personalizado de Fechas (Calendar Picker) -->
+    @if (selectedPeriod() === 'PERSONALIZADO') {
+      <div class="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-3 bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
+        <span class="text-xs font-bold text-primary flex items-center gap-1">
+          <span>📅</span> Rango de Fechas Personalizado:
+        </span>
+        <div class="flex items-center gap-2">
+          <label class="text-[11px] text-gray-600 font-semibold">Desde:</label>
+          <input
+            type="date"
+            [(ngModel)]="customStartDate"
+            class="bg-white border border-gray-300 rounded-lg px-2.5 py-1 text-xs text-gray-900 focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-[11px] text-gray-600 font-semibold">Hasta:</label>
+          <input
+            type="date"
+            [(ngModel)]="customEndDate"
+            class="bg-white border border-gray-300 rounded-lg px-2.5 py-1 text-xs text-gray-900 focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <span class="text-[11px] text-gray-500 font-medium">
+          (Cálculo proporcional de días)
+        </span>
+      </div>
+    }
+
+    <!-- Tira de KPIs Reactivos del Filtro Actual -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-100">
+      <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Recaudación Filtrada</p>
+        <p class="text-sm sm:text-base font-black text-primary font-mono mt-0.5">
+          Q{{ totalRevenueFiltered().toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+        </p>
+      </div>
+      <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Viajes Realizados</p>
+        <p class="text-sm sm:text-base font-black text-gray-800 font-mono mt-0.5">
+          {{ totalTripsFiltered() }}
+        </p>
+      </div>
+      <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Promedio por Viaje</p>
+        <p class="text-sm sm:text-base font-black text-emerald-700 font-mono mt-0.5">
+          Q{{ avgTicketFiltered().toFixed(2) }}
+        </p>
+      </div>
+      <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Unidades Mostradas</p>
+        <p class="text-sm sm:text-base font-black text-gray-900 font-mono mt-0.5">
+          {{ filteredSummaries().length }} de {{ summaries().length }}
+        </p>
+      </div>
+    </div>
   </div>
 
   <!-- Gráfica de Ingresos por Bus con Chart.js -->
-  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-    <div class="flex items-center justify-between mb-4">
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <div>
         <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-          <span>📊</span> Comparativa de Ingresos Mensuales por Unidad
+          <span>📊</span> Comparativa de Ingresos por Unidad
         </h3>
         <p class="text-xs text-gray-500">
-          Recaudación consolidada de los últimos 30 días en Quetzales
+          Recaudación consolidada de: <span class="font-bold text-primary">{{ periodLabel() }}</span>
         </p>
       </div>
-      <span class="text-xs font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
-        Chart.js Bar
-      </span>
+      <div class="flex items-center gap-2">
+        @if (selectedPlacas().length > 0) {
+          <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+            Comparando {{ selectedPlacas().length }} unidad(es)
+          </span>
+        }
+        <span class="text-xs font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+          Chart.js Reactivo
+        </span>
+      </div>
     </div>
 
     <div class="relative h-64 sm:h-72 w-full">
@@ -39,47 +203,128 @@
     </div>
   </div>
 
-  <!-- Tabla Detallada de Ingresos por Bus (Día / Semana / Mes) (F12) -->
-  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-    <div class="mb-3">
-      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-        <span>💰</span> Desglose de Rendimiento por Unidad
-      </h3>
-      <p class="text-xs text-gray-500">Métricas acumuladas por autobús en Quetzales</p>
+  <!-- 2. FILTROS DE TABLA Y SELECCIÓN DE FLOTA -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <span>💰</span> Desglose de Rendimiento por Unidad
+        </h3>
+        <p class="text-xs text-gray-500">Métricas analíticas detalladas y aislador de flota para comparativas directas</p>
+      </div>
+
+      <!-- Buscador Instantáneo (Search Input) -->
+      <div class="relative min-w-[260px] max-w-md">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Buscar por placa (ej. M-101ABC) o ruta..."
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-8 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all font-medium"
+        />
+        <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
+        @if (searchTerm().length > 0) {
+          <button
+            (click)="searchTerm.set('')"
+            class="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer"
+            title="Limpiar búsqueda"
+          >
+            ×
+          </button>
+        }
+      </div>
     </div>
 
+    <!-- Selector Multiselección de Unidades (Placas) -->
+    <div class="bg-gray-50/80 border border-gray-200 p-3 rounded-xl space-y-2">
+      <div class="flex items-center justify-between">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+          <span>🚌</span> Aislar y Comparar Unidades (Placas):
+        </label>
+        @if (selectedPlacas().length > 0) {
+          <button
+            (click)="clearPlacaSelection()"
+            class="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+          >
+            Deseleccionar todas (×)
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        @for (placa of availablePlacas(); track placa) {
+          <button
+            (click)="togglePlaca(placa)"
+            [class]="isPlacaSelected(placa)
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-blue-50/30'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <span>{{ placa }}</span>
+            @if (isPlacaSelected(placa)) {
+              <span class="text-[10px]">✓</span>
+            }
+          </button>
+        }
+        <span class="text-[10px] text-gray-400 italic ml-1">
+          (Selecciona 2 o 3 autobuses para comparar sus barras en la gráfica superior)
+        </span>
+      </div>
+    </div>
+
+    <!-- Tabla Detallada Filtrada -->
     <div class="overflow-x-auto border border-gray-200 rounded-xl">
       <table class="w-full text-left text-xs">
         <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
           <tr>
             <th class="py-3 px-3.5">Placa</th>
             <th class="py-3 px-3.5">Ruta Principal</th>
-            <th class="py-3 px-3.5 text-right">Hoy</th>
-            <th class="py-3 px-3.5 text-right">Esta Semana</th>
-            <th class="py-3 px-3.5 text-right">Este Mes</th>
-            <th class="py-3 px-3.5 text-right">Viajes Mes</th>
+            <th class="py-3 px-3.5">Municipios</th>
+            <th class="py-3 px-3.5 text-right">Ingresos ({{ periodLabel() }})</th>
+            <th class="py-3 px-3.5 text-right">Viajes</th>
+            <th class="py-3 px-3.5 text-right">Promedio / Viaje</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
-          @for (s of summaries(); track s.busId) {
+          @for (s of filteredSummaries(); track s.busId) {
             <tr class="hover:bg-blue-50/40 transition-colors">
-              <td class="py-3 px-3.5 font-bold text-primary font-mono">
-                {{ s.placa }}
+              <td class="py-3 px-3.5 font-bold text-primary font-mono flex items-center gap-1.5">
+                <span>🚌</span> {{ s.placa }}
               </td>
               <td class="py-3 px-3.5 font-bold text-gray-900">
                 {{ s.rutaNombre }}
               </td>
-              <td class="py-3 px-3.5 text-right text-emerald-700 font-bold">
-                Q{{ s.ingresosHoy.toFixed(2) }}
+              <td class="py-3 px-3.5">
+                <div class="flex flex-wrap gap-1">
+                  @for (m of s.municipios; track m) {
+                    <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                      {{ m }}
+                    </span>
+                  }
+                </div>
               </td>
-              <td class="py-3 px-3.5 text-right text-gray-800 font-semibold">
-                Q{{ s.ingresosSemana.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+              <td class="py-3 px-3.5 text-right text-primary font-black font-mono text-sm">
+                Q{{ s.ingresosPeriodo.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
               </td>
-              <td class="py-3 px-3.5 text-right text-primary font-black">
-                Q{{ s.ingresosMes.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+              <td class="py-3 px-3.5 text-right text-gray-800 font-bold font-mono">
+                {{ s.viajesPeriodo }}
               </td>
-              <td class="py-3 px-3.5 text-right text-gray-600 font-mono">
-                {{ s.viajesMes }}
+              <td class="py-3 px-3.5 text-right text-emerald-700 font-bold font-mono">
+                Q{{ s.promedioPorViaje.toFixed(2) }}
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-10 text-gray-400">
+                <div class="space-y-2">
+                  <span class="text-2xl">🔍</span>
+                  <p class="font-bold text-gray-700">No se encontraron unidades con los filtros seleccionados</p>
+                  <button
+                    (click)="resetAllFilters()"
+                    class="text-xs text-primary font-bold hover:underline cursor-pointer"
+                  >
+                    Restablecer filtros
+                  </button>
+                </div>
               </td>
             </tr>
           }
@@ -88,19 +333,128 @@
     </div>
   </div>
 
-  <!-- Sección de Motivos de Cancelación (F12) -->
-  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-    <div class="mb-4">
-      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-        <span>⚠️</span> Análisis de Cancelaciones y Motivos
-      </h3>
-      <p class="text-xs text-gray-500">
-        Monitoreo de factores que causan suspensiones de viaje
-      </p>
+  <!-- 3. FILTRO DE CANCELACIONES E INCIDENCIAS -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <span>⚠️</span> Análisis de Cancelaciones y Motivos
+        </h3>
+        <p class="text-xs text-gray-500">
+          Monitoreo de factores que causan suspensiones de viaje, filtrables por categoría y severidad
+        </p>
+      </div>
+
+      <span class="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
+        {{ filteredCancellations().length }} incidentes registrados
+      </span>
     </div>
 
+    <!-- Barra de Filtros de Incidencias: Categoría & Severidad -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/80 p-3.5 rounded-xl border border-gray-200">
+      <!-- Filtro por Categoría de Incidente -->
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+          <span>🏷️</span> Categoría de Incidente:
+        </label>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            (click)="selectedIncidentCategory.set('TODAS')"
+            [class]="selectedIncidentCategory() === 'TODAS'
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Todas
+          </button>
+          <button
+            (click)="selectedIncidentCategory.set('OPERATIVOS')"
+            [class]="selectedIncidentCategory() === 'OPERATIVOS'
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Tráfico / Operativo
+          </button>
+          <button
+            (click)="selectedIncidentCategory.set('MECANICAS')"
+            [class]="selectedIncidentCategory() === 'MECANICAS'
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Fallas Mecánicas
+          </button>
+          <button
+            (click)="selectedIncidentCategory.set('USUARIO')"
+            [class]="selectedIncidentCategory() === 'USUARIO'
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Usuario
+          </button>
+          <button
+            (click)="selectedIncidentCategory.set('CLIMA_BLOQUEO')"
+            [class]="selectedIncidentCategory() === 'CLIMA_BLOQUEO'
+              ? 'bg-primary text-white border-primary shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Clima / Bloqueos
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtro por Nivel de Severidad -->
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+          <span>🚨</span> Nivel de Severidad:
+        </label>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            (click)="selectedIncidentSeverity.set('TODAS')"
+            [class]="selectedIncidentSeverity() === 'TODAS'
+              ? 'bg-gray-800 text-white border-gray-800 shadow-xs'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
+          >
+            Todas
+          </button>
+          <button
+            (click)="selectedIncidentSeverity.set('ALTA')"
+            [class]="selectedIncidentSeverity() === 'ALTA'
+              ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+              : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer"
+          >
+            🔴 Alta (Crítica)
+          </button>
+          <button
+            (click)="selectedIncidentSeverity.set('MEDIA')"
+            [class]="selectedIncidentSeverity() === 'MEDIA'
+              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+              : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer"
+          >
+            🟡 Media
+          </button>
+          <button
+            (click)="selectedIncidentSeverity.set('BAJA')"
+            [class]="selectedIncidentSeverity() === 'BAJA'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+              : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'"
+            class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer"
+          >
+            🔵 Baja
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desglose Porcentual Dinámico según Filtros -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      @for (c of cancellations(); track c.motivo) {
+      @for (c of dynamicCancellationsSummary(); track c.motivo) {
         <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold text-gray-800">{{ c.motivo }}</span>
@@ -108,13 +462,70 @@
           </div>
           <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2">
             <div
-              class="bg-rose-500 h-full rounded-full"
+              class="bg-rose-500 h-full rounded-full transition-all duration-500"
               [style.width.%]="c.porcentaje"
             ></div>
           </div>
-          <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidentes registrados</span>
+          <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidente(s) filtrado(s)</span>
+        </div>
+      } @empty {
+        <div class="col-span-full text-center py-6 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <p class="text-xs font-medium">No hay incidencias para la combinación de categoría y severidad seleccionada</p>
         </div>
       }
+    </div>
+
+    <!-- Listado Detallado de Incidencias Filtradas -->
+    <div class="space-y-2 mt-4">
+      <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">
+        Eventos e Incidencias Detalladas ({{ filteredCancellations().length }})
+      </h4>
+      <div class="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white">
+        @for (item of filteredCancellations(); track item.id) {
+          <div class="p-3.5 hover:bg-gray-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-xs text-gray-900">{{ item.motivo }}</span>
+                <!-- Badge Severidad -->
+                @if (item.severidad === 'ALTA') {
+                  <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200">
+                    Severidad Alta
+                  </span>
+                } @else if (item.severidad === 'MEDIA') {
+                  <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                    Severidad Media
+                  </span>
+                } @else {
+                  <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                    Severidad Baja
+                  </span>
+                }
+                <!-- Badge Categoría -->
+                <span class="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full">
+                  {{ item.categoriaNombre }}
+                </span>
+              </div>
+              <p class="text-xs text-gray-600">{{ item.descripcion }}</p>
+              <div class="flex items-center gap-3 text-[11px] text-gray-400 flex-wrap">
+                <span>🚌 <strong>{{ item.busPlaca }}</strong> ({{ item.rutaNombre }})</span>
+                <span>📍 {{ item.municipio }}</span>
+                <span>🗓️ {{ item.fecha }}</span>
+              </div>
+            </div>
+
+            <div class="text-right sm:min-w-[120px] shrink-0">
+              <span class="text-xs font-bold text-gray-700 block">{{ item.pasajerosAfectados }} pasajeros</span>
+              @if (item.reembolsoQ > 0) {
+                <span class="text-xs font-bold text-rose-600 font-mono">Q{{ item.reembolsoQ.toFixed(2) }} reembolsados</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center py-6 text-gray-400">
+            <p class="text-xs">No hay eventos coincidentes</p>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </div>
