@@ -2,7 +2,6 @@ import { Component, inject, signal, AfterViewInit, OnInit } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RoutesService } from '../../../../core/services/routes';
 import { Route } from '../../../../core/models';
-
 @Component({
   selector: 'app-ruta-detail',
   standalone: true,
@@ -35,19 +34,18 @@ export class RutaDetail implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Espera a que el signal route esté listo y dibuja el mapa
     setTimeout(() => this.initMap(), 100);
   }
 
   private initMap() {
     const route = this.route();
-    if (!route) return;
+    if (!route || !route.stops || route.stops.length === 0) return;
 
     import('leaflet').then((L) => {
       const leaflet = (L as any).default || L;
 
       const map = leaflet.map('route-map', {
-        center: [route.paradas[0].lat, route.paradas[0].lng],
+        center: [route.stops[0].latitud, route.stops[0].longitud],
         zoom: 12,
         zoomControl: true,
       });
@@ -59,10 +57,10 @@ export class RutaDetail implements OnInit, AfterViewInit {
 
       const coords: [number, number][] = [];
 
-      route.paradas.forEach((parada, index) => {
-        coords.push([parada.lat, parada.lng]);
+      route.stops.forEach((parada, index: number) => {
+        coords.push([parada.latitud, parada.longitud]);
 
-        leaflet.marker([parada.lat, parada.lng], {
+        leaflet.marker([parada.latitud, parada.longitud], {
           icon: leaflet.divIcon({
             className: 'stop-marker',
             html: `<div style="background:#1E3A8A;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)">${index + 1}</div>`,
@@ -72,14 +70,12 @@ export class RutaDetail implements OnInit, AfterViewInit {
         }).addTo(map).bindPopup(`<b>${parada.nombre}</b>`);
       });
 
-      // Polyline con la trayectoria
       leaflet.polyline(coords, {
         color: '#1E3A8A',
         weight: 4,
         opacity: 0.7,
       }).addTo(map);
 
-      // Ajusta el zoom para ver todas las paradas
       map.fitBounds(coords, { padding: [30, 30] });
     });
   }

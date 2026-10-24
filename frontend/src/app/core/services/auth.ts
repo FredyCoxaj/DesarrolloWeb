@@ -46,6 +46,18 @@ export class Auth {
     return this.currentUser()?.rol === role;
   }
 
+    switchRole(role: UserRole) {
+    const user = this.currentUser();
+    if (!user) return;
+    const updated = { ...user, rol: role };
+    this.currentUser.set(updated);
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    // Redirigir según el nuevo rol
+    if (role === 'ADMIN') this.router.navigate(['/admin/dashboard']);
+    else if (role === 'CHOFER') this.router.navigate(['/chofer/viaje-activo']);
+    else this.router.navigate(['/pasajero/mapa']);
+  }
+
   private saveSession(res: AuthResponseDto) {
     localStorage.setItem(TOKEN_KEY, res.accessToken);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));

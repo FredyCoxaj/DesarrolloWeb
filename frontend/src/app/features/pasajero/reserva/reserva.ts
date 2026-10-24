@@ -44,10 +44,10 @@ export class Reserva implements OnInit, AfterViewInit {
     }
 
     this.routesService.getById(id).subscribe((r) => {
-      if (r) {
+      if (r && r.stops.length > 0) {
         this.route.set(r);
-        this.boardingStopId.set(r.paradas[0].id);
-        this.alightingStopId.set(r.paradas[r.paradas.length - 1].id);
+        this.boardingStopId.set(r.stops[0].id);
+        this.alightingStopId.set(r.stops[r.stops.length - 1].id);
       } else {
         this.notFound.set(true);
       }
@@ -68,7 +68,7 @@ export class Reserva implements OnInit, AfterViewInit {
 
       const route = this.route()!;
       const map = leaflet.map('reserva-map', {
-        center: [route.paradas[0].lat, route.paradas[0].lng],
+        center: [route.stops[0].latitud, route.stops[0].longitud],
         zoom: 12,
         zoomControl: false,
       });
@@ -79,9 +79,9 @@ export class Reserva implements OnInit, AfterViewInit {
       }).addTo(map);
 
       const coords: [number, number][] = [];
-      route.paradas.forEach((p, i) => {
-        coords.push([p.lat, p.lng]);
-        leaflet.marker([p.lat, p.lng], {
+      route.stops.forEach((p, i: number) => {
+        coords.push([p.latitud, p.longitud]);
+        leaflet.marker([p.latitud, p.longitud], {
           icon: leaflet.divIcon({
             className: 'stop-marker',
             html: `<div style="background:#1E3A8A;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;border:2px solid white">${i + 1}</div>`,
@@ -99,12 +99,12 @@ export class Reserva implements OnInit, AfterViewInit {
   get precioTramo(): number {
     const r = this.route();
     if (!r) return 0;
-    const idxSubida = r.paradas.findIndex((p) => p.id === this.boardingStopId());
-    const idxBajada = r.paradas.findIndex((p) => p.id === this.alightingStopId());
-    const totalParadas = r.paradas.length - 1;
-    if (totalParadas <= 0 || idxSubida < 0 || idxBajada < 0) return r.precio;
+    const idxSubida = r.stops.findIndex((p) => p.id === this.boardingStopId());
+    const idxBajada = r.stops.findIndex((p) => p.id === this.alightingStopId());
+    const totalParadas = r.stops.length - 1;
+    if (totalParadas <= 0 || idxSubida < 0 || idxBajada < 0) return r.precioBase;
     const tramos = Math.abs(idxBajada - idxSubida);
-    return (r.precio / totalParadas) * tramos;
+    return (r.precioBase / totalParadas) * tramos;
   }
 
   get puedeContinuarPaso1(): boolean {
@@ -138,8 +138,8 @@ export class Reserva implements OnInit, AfterViewInit {
     this.ticketId.set(id);
 
     const route = this.route()!;
-    const boardingStop = route.paradas.find((p) => p.id === this.boardingStopId())!;
-    const alightingStop = route.paradas.find((p) => p.id === this.alightingStopId())!;
+    const boardingStop = route.stops.find((p) => p.id === this.boardingStopId())!;
+    const alightingStop = route.stops.find((p) => p.id === this.alightingStopId())!;
 
     const qrContent = JSON.stringify({
       ticketId: id,
@@ -162,17 +162,20 @@ export class Reserva implements OnInit, AfterViewInit {
     this.ticketsService.add({
       id,
       tripId: 'trip-mock',
-      routeId: route.id,
-      routeName: route.nombre,
+      pasajeroId: 'pasajero-mock',
       asiento: this.selectedSeat()!,
-      boardingStopId: boardingStop.id,
-      boardingStopName: boardingStop.nombre,
-      alightingStopId: alightingStop.id,
-      alightingStopName: alightingStop.nombre,
+      paradaSubidaId: boardingStop.id,
+      paradaBajadaId: alightingStop.id,
       estado: this.paymentMethod() === 'EFECTIVO' ? 'RESERVADO' : 'PAGADO',
+      qrCode: qrContent,
       qrDataUrl: dataUrl,
-      fecha: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       precio: this.precioTramo,
+      // Campos derivados (para que se muestren las pantallas)
+      routeName: route.nombre,
+      boardingStopName: boardingStop.nombre,
+      alightingStopName: alightingStop.nombre,
     });
 
     this.step.set(4);

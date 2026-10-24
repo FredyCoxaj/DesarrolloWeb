@@ -57,24 +57,26 @@ export class BoletosList implements OnInit {
   }
 
   estadoLabel(estado: Ticket['estado']): string {
-    const map: Record<Ticket['estado'], string> = {
-      RESERVADO: 'Reservado',
-      PAGADO: 'Pagado',
-      ABORDADO: 'Abordado',
-      CANCELADO: 'Cancelado',
-    };
-    return map[estado];
-  }
+  const map: Record<Ticket['estado'], string> = {
+    RESERVADO: 'Reservado',
+    PAGADO: 'Pagado',
+    ABORDADO: 'Abordado',
+    CANCELADO: 'Cancelado',
+    NO_SHOW: 'No se presentó', 
+  };
+  return map[estado];
+}
 
   estadoColor(estado: Ticket['estado']): string {
-    const map: Record<Ticket['estado'], string> = {
-      RESERVADO: 'bg-yellow-100 text-yellow-700',
-      PAGADO: 'bg-blue-100 text-blue-700',
-      ABORDADO: 'bg-green-100 text-green-700',
-      CANCELADO: 'bg-gray-200 text-gray-600',
-    };
-    return map[estado];
-  }
+  const map: Record<Ticket['estado'], string> = {
+    RESERVADO: 'bg-yellow-100 text-yellow-700',
+    PAGADO: 'bg-blue-100 text-blue-700',
+    ABORDADO: 'bg-green-100 text-green-700',
+    CANCELADO: 'bg-gray-200 text-gray-600',
+    NO_SHOW: 'bg-red-100 text-red-700',   
+  };
+  return map[estado];
+}
 
   formatFecha(iso: string): string {
     const d = new Date(iso);

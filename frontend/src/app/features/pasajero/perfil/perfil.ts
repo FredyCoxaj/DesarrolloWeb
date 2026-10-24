@@ -31,7 +31,7 @@ export class Perfil implements OnInit {
     this.usersService.getMe().subscribe((u) => {
       this.user.set(u);
       this.nombre = u.nombre;
-      this.email = u.email;
+      this.email = u.email ?? '';
       this.telefono = u.telefono || '';
     });
   }
@@ -55,7 +55,7 @@ export class Perfil implements OnInit {
     const u = this.user();
     if (u) {
       this.nombre = u.nombre;
-      this.email = u.email;
+      this.email = u.email ?? '';
       this.telefono = u.telefono || '';
     }
     this.editing.set(false);

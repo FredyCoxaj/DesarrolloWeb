@@ -55,7 +55,7 @@
             (ngModelChange)="boardingStopId.set($event)"
             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            @for (parada of route()!.paradas; track parada.id) {
+            @for (parada of route()!.stops; track parada.id) {
               <option [value]="parada.id">{{ parada.nombre }}</option>
             }
           </select>
@@ -68,7 +68,7 @@
             (ngModelChange)="alightingStopId.set($event)"
             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            @for (parada of route()!.paradas; track parada.id) {
+            @for (parada of route()!.stops; track parada.id) {
               <option [value]="parada.id">{{ parada.nombre }}</option>
             }
           </select>

@@ -16,6 +16,7 @@ export class Register {
 
   dpi = '';
   nombre = '';
+  apellido = '';
   email = '';
   password = '';
   telefono = '';
@@ -53,7 +54,7 @@ export class Register {
       this.error.set('El DPI debe tener 13 dígitos');
       return;
     }
-    if (!this.nombre || !this.email || !this.password || !this.fechaNacimiento) {
+    if (!this.nombre || !this.apellido || !this.email || !this.password || !this.fechaNacimiento) {
       this.error.set('Completa todos los campos obligatorios');
       return;
     }
@@ -64,6 +65,7 @@ export class Register {
     this.auth.register({
       dpi: this.dpi,
       nombre: this.nombre,
+      apellido: this.apellido,
       email: this.email,
       password: this.password,
       telefono: this.telefono,

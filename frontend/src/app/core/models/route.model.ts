@@ -19,4 +19,5 @@ export interface Route {
   activa: boolean;
   color: string;
   stops: Stop[];
+  imagen?: string;
 }

@@ -56,6 +56,7 @@ export class BoletosDetail implements OnInit {
       PAGADO: 'Pagado',
       ABORDADO: 'Abordado',
       CANCELADO: 'Cancelado',
+      NO_SHOW: 'No se presentó', 
     };
     return map[estado];
   }

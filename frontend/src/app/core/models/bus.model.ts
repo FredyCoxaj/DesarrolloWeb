@@ -7,8 +7,8 @@ export interface Bus {
   modelo?: string;
   anio?: number;
   capacidad: number;
-  filas: number;
-  columnas: number;
+  filas?: number;
+  columnas?: number;
   estado: BusEstado;
   fotoUrl?: string;
 }
