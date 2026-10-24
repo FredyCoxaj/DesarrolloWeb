@@ -10,10 +10,8 @@
       </p>
     </div>
 
-    <button
-      (click)="exportCsv()"
-      class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
-    >
+    <button (click)="exportCsv()"
+      class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer">
       <span>📥 Descargar Reporte CSV</span>
     </button>
   </div>
@@ -62,26 +60,26 @@
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
           @for (s of summaries(); track s.busId) {
-            <tr class="hover:bg-blue-50/40 transition-colors">
-              <td class="py-3 px-3.5 font-bold text-primary font-mono">
-                {{ s.placa }}
-              </td>
-              <td class="py-3 px-3.5 font-bold text-gray-900">
-                {{ s.rutaNombre }}
-              </td>
-              <td class="py-3 px-3.5 text-right text-emerald-700 font-bold">
-                Q{{ s.ingresosHoy.toFixed(2) }}
-              </td>
-              <td class="py-3 px-3.5 text-right text-gray-800 font-semibold">
-                Q{{ s.ingresosSemana.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
-              </td>
-              <td class="py-3 px-3.5 text-right text-primary font-black">
-                Q{{ s.ingresosMes.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
-              </td>
-              <td class="py-3 px-3.5 text-right text-gray-600 font-mono">
-                {{ s.viajesMes }}
-              </td>
-            </tr>
+          <tr class="hover:bg-blue-50/40 transition-colors">
+            <td class="py-3 px-3.5 font-bold text-primary font-mono">
+              {{ s.placa }}
+            </td>
+            <td class="py-3 px-3.5 font-bold text-gray-900">
+              {{ s.rutaNombre }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-emerald-700 font-bold">
+              Q{{ s.ingresosHoy.toFixed(2) }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-gray-800 font-semibold">
+              Q{{ s.ingresosSemana.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-primary font-black">
+              Q{{ s.ingresosMes.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-gray-600 font-mono">
+              {{ s.viajesMes }}
+            </td>
+          </tr>
           }
         </tbody>
       </table>
@@ -101,19 +99,16 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       @for (c of cancellations(); track c.motivo) {
-        <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-gray-800">{{ c.motivo }}</span>
-            <span class="text-xs font-black text-rose-600">{{ c.porcentaje }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2">
-            <div
-              class="bg-rose-500 h-full rounded-full"
-              [style.width.%]="c.porcentaje"
-            ></div>
-          </div>
-          <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidentes registrados</span>
+      <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-gray-800">{{ c.motivo }}</span>
+          <span class="text-xs font-black text-rose-600">{{ c.porcentaje }}%</span>
         </div>
+        <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2">
+          <div class="bg-rose-500 h-full rounded-full" [style.width.%]="c.porcentaje"></div>
+        </div>
+        <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidentes registrados</span>
+      </div>
       }
     </div>
   </div>

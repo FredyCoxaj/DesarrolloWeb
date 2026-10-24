@@ -46,8 +46,8 @@ export class AdminFlota {
     this.isEditing.set(true);
     this.formId = bus.id;
     this.formPlaca = bus.placa;
-    this.formModelo = bus.modelo;
-    this.formAnio = bus.anio;
+    this.formModelo = bus.modelo ?? '';
+    this.formAnio = bus.anio ?? 0;
     this.formCapacidad = bus.capacidad;
     this.formEstado = bus.estado;
     this.showModal.set(true);
