@@ -1,1 +1,25 @@
 /* Estilos de Reportes Admin */
+
+.filtro-input {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus,
+  &:focus-visible {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Oculta el triángulo nativo de <summary> en Safari */
+summary::-webkit-details-marker {
+  display: none;
+}

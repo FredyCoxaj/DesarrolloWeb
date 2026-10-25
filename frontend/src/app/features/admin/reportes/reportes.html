@@ -3,17 +3,85 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
       <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-        <span>📈</span> Reportes Financieros & Rendimiento Operacional
+        <span>📈</span> Reportes Financieros &amp; Rendimiento Operacional
       </h2>
       <p class="text-xs text-gray-500">
         Rendimiento económico por unidad de bus, motivos de cancelación y exportación de datos
       </p>
     </div>
 
-    <button (click)="exportCsv()"
+    <button id="btn-exportar-csv" (click)="exportCsv()"
       class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer">
       <span>📥 Descargar Reporte CSV</span>
     </button>
+  </div>
+
+  <!-- ===== 1. Filtros Globales (barra fija) ===== -->
+  <div class="sticky top-0 z-10 bg-white/95 backdrop-blur border border-gray-200 rounded-2xl p-4 shadow-sm">
+    <div class="flex flex-wrap items-end gap-3">
+      <!-- Período -->
+      <label class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">📅 Período</span>
+        <select id="filtro-periodo" class="filtro-input" (change)="periodo.set($any($event.target).value)">
+          @for (p of periodos; track p.id) {
+          <option [value]="p.id" [selected]="periodo() === p.id">{{ p.label }}</option>
+          }
+        </select>
+      </label>
+
+      @if (periodo() === 'CUSTOM') {
+      <label class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Desde</span>
+        <input id="filtro-fecha-desde" type="date" class="filtro-input" [min]="fechaMinima" [max]="hoy"
+          [value]="fechaDesde()" (change)="fechaDesde.set($any($event.target).value || fechaDesde())" />
+      </label>
+      <label class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Hasta</span>
+        <input id="filtro-fecha-hasta" type="date" class="filtro-input" [min]="fechaMinima" [max]="hoy"
+          [value]="fechaHasta()" (change)="fechaHasta.set($any($event.target).value || fechaHasta())" />
+      </label>
+      }
+
+      <!-- Municipio -->
+      <label class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">📍 Municipio / Zona</span>
+        <select id="filtro-municipio" class="filtro-input" (change)="cambiarMunicipio($any($event.target).value)">
+          <option value="" [selected]="!municipio()">Todos</option>
+          @for (m of municipios; track m) {
+          <option [value]="m" [selected]="municipio() === m">{{ m }}</option>
+          }
+        </select>
+      </label>
+
+      <!-- Ruta principal (multiselección) -->
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">🛣️ Ruta principal</span>
+        <details class="relative">
+          <summary id="filtro-rutas" class="filtro-input list-none cursor-pointer min-w-[12rem]">
+            {{ rutasSeleccionadas().length ? rutasSeleccionadas().length + ' seleccionada(s)' : 'Todas las rutas' }} ▾
+          </summary>
+          <div class="absolute z-20 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-2">
+            @for (r of rutasDisponibles(); track r) {
+            <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-blue-50 text-xs cursor-pointer">
+              <input type="checkbox" [checked]="rutasSeleccionadas().includes(r)" (change)="alternarRuta(r)" />
+              {{ r }}
+            </label>
+            } @empty {
+            <p class="text-xs text-gray-500 px-2 py-1.5">No hay rutas para este municipio</p>
+            }
+          </div>
+        </details>
+      </div>
+
+      <button id="btn-limpiar-filtros" (click)="limpiarFiltros()" [disabled]="!hayFiltrosActivos()"
+        class="ml-auto px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+        ↺ Limpiar filtros
+      </button>
+    </div>
+    <p class="text-[11px] text-gray-500 mt-2">
+      Mostrando del <span class="font-bold text-gray-700">{{ rango().desde }}</span> al
+      <span class="font-bold text-gray-700">{{ rango().hasta }}</span>
+    </p>
   </div>
 
   <!-- Gráfica de Ingresos por Bus con Chart.js -->
@@ -21,23 +89,28 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-          <span>📊</span> Comparativa de Ingresos Mensuales por Unidad
+          <span>📊</span> Comparativa de Ingresos por Unidad
         </h3>
         <p class="text-xs text-gray-500">
-          Recaudación consolidada de los últimos 30 días en Quetzales
+          Recaudación del período seleccionado en Quetzales
         </p>
       </div>
       <span class="text-xs font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
-        Chart.js Bar
+        Total: Q{{ formatoQ(totalIngresos()) }}
       </span>
     </div>
 
     <div class="relative h-64 sm:h-72 w-full">
-      <canvas id="busRevenueBarChart"></canvas>
+      <canvas #chartCanvas [class.invisible]="filas().length === 0"></canvas>
+      @if (filas().length === 0) {
+      <p class="absolute inset-0 flex items-center justify-center text-sm text-gray-500">
+        Ninguna unidad coincide con los filtros
+      </p>
+      }
     </div>
   </div>
 
-  <!-- Tabla Detallada de Ingresos por Bus (Día / Semana / Mes) (F12) -->
+  <!-- Tabla Detallada de Ingresos por Bus (F12) -->
   <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
     <div class="mb-3">
       <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -46,42 +119,81 @@
       <p class="text-xs text-gray-500">Métricas acumuladas por autobús en Quetzales</p>
     </div>
 
+    <!-- ===== 2. Filtros de tabla y flota ===== -->
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <!-- Buscador instantáneo -->
+      <input id="buscar-unidad" type="search" placeholder="🔍 Buscar placa o ruta..." class="filtro-input w-56"
+        [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+
+      <!-- Unidades (multiselección) -->
+      <details class="relative">
+        <summary id="filtro-unidades" class="filtro-input list-none cursor-pointer">
+          🚌 {{ placasSeleccionadas().length ? 'Comparando ' + placasSeleccionadas().length : 'Todas las unidades' }} ▾
+        </summary>
+        <div class="absolute z-20 mt-1 w-52 bg-white border border-gray-200 rounded-xl shadow-lg p-2">
+          @for (p of todasLasPlacas(); track p) {
+          <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-mono cursor-pointer">
+            <input type="checkbox" [checked]="placasSeleccionadas().includes(p)" (change)="alternarPlaca(p)" />
+            {{ p }}
+          </label>
+          }
+          @if (placasSeleccionadas().length) {
+          <button type="button" (click)="placasSeleccionadas.set([])"
+            class="w-full mt-1 text-[11px] font-semibold text-gray-500 hover:underline cursor-pointer">
+            Quitar selección
+          </button>
+          }
+        </div>
+      </details>
+
+      <!-- Desempeño -->
+      @for (d of opcionesDesempeno; track d.id) {
+      <button [id]="'desempeno-' + d.id" (click)="alternarDesempeno(d.id)" [attr.aria-pressed]="desempeno() === d.id"
+        class="px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors cursor-pointer"
+        [class]="desempeno() === d.id ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'">
+        {{ d.label }}
+      </button>
+      }
+    </div>
+
     <div class="overflow-x-auto border border-gray-200 rounded-xl">
       <table class="w-full text-left text-xs">
         <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] tracking-wider border-b border-gray-200">
           <tr>
             <th class="py-3 px-3.5">Placa</th>
             <th class="py-3 px-3.5">Ruta Principal</th>
-            <th class="py-3 px-3.5 text-right">Hoy</th>
-            <th class="py-3 px-3.5 text-right">Esta Semana</th>
-            <th class="py-3 px-3.5 text-right">Este Mes</th>
-            <th class="py-3 px-3.5 text-right">Viajes Mes</th>
+            <th class="py-3 px-3.5 text-right">Ingresos</th>
+            <th class="py-3 px-3.5 text-right">Viajes</th>
+            <th class="py-3 px-3.5 text-right">Promedio por viaje</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
-          @for (s of summaries(); track s.busId) {
+          @for (f of filas(); track f.busId) {
           <tr class="hover:bg-blue-50/40 transition-colors">
-            <td class="py-3 px-3.5 font-bold text-primary font-mono">
-              {{ s.placa }}
-            </td>
-            <td class="py-3 px-3.5 font-bold text-gray-900">
-              {{ s.rutaNombre }}
-            </td>
-            <td class="py-3 px-3.5 text-right text-emerald-700 font-bold">
-              Q{{ s.ingresosHoy.toFixed(2) }}
-            </td>
+            <td class="py-3 px-3.5 font-bold text-primary font-mono">{{ f.placa }}</td>
+            <td class="py-3 px-3.5 font-bold text-gray-900">{{ f.rutaNombre }}</td>
+            <td class="py-3 px-3.5 text-right text-primary font-black">Q{{ formatoQ(f.ingresos) }}</td>
+            <td class="py-3 px-3.5 text-right text-gray-600 font-mono">{{ f.viajes }}</td>
             <td class="py-3 px-3.5 text-right text-gray-800 font-semibold">
-              Q{{ s.ingresosSemana.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+              Q{{ formatoQ(f.viajes ? f.ingresos / f.viajes : 0) }}
             </td>
-            <td class="py-3 px-3.5 text-right text-primary font-black">
-              Q{{ s.ingresosMes.toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
-            </td>
-            <td class="py-3 px-3.5 text-right text-gray-600 font-mono">
-              {{ s.viajesMes }}
-            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="py-8 text-center text-gray-500">No hay unidades que coincidan con los filtros</td>
           </tr>
           }
         </tbody>
+        @if (filas().length > 1) {
+        <tfoot class="bg-gray-50 border-t border-gray-200">
+          <tr>
+            <td colspan="2" class="py-3 px-3.5 font-bold text-gray-600 uppercase text-[10px]">Total</td>
+            <td class="py-3 px-3.5 text-right text-primary font-black">Q{{ formatoQ(totalIngresos()) }}</td>
+            <td class="py-3 px-3.5 text-right font-mono font-bold">{{ totalViajes() }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+        }
       </table>
     </div>
   </div>
@@ -97,19 +209,58 @@
       </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      @for (c of cancellations(); track c.motivo) {
-      <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-gray-800">{{ c.motivo }}</span>
-          <span class="text-xs font-black text-rose-600">{{ c.porcentaje }}%</span>
+    <!-- ===== 3. Filtros de incidencias ===== -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <!-- Categoría (pills) -->
+      <div class="flex flex-wrap gap-1.5" role="tablist">
+        @for (c of categorias; track c.id) {
+        <button [id]="'categoria-' + c.id" role="tab" [attr.aria-selected]="categoria() === c.id" (click)="categoria.set(c.id)"
+          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors cursor-pointer"
+          [class]="categoria() === c.id ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'">
+          {{ c.label }} <span class="opacity-70">({{ conteoCategoria(c.id) }})</span>
+        </button>
+        }
+      </div>
+
+      <!-- Severidad -->
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Severidad</span>
+        @for (s of severidades; track s) {
+        <button [id]="'severidad-' + s" (click)="alternarSeveridad(s)" [attr.aria-pressed]="severidad() === s"
+          class="px-2.5 py-1 rounded-full border text-[11px] font-bold transition-all cursor-pointer"
+          [class]="claseSeveridad(s) + (severidad() === s ? ' ring-2 ring-offset-1 ring-current' : severidad() ? ' opacity-40' : '')">
+          {{ s === 'ALTA' ? '🔴 Alta' : s === 'MEDIA' ? '🟠 Media' : '🟢 Baja' }}
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Lista de incidentes -->
+    @if (incidentesFiltrados().length) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      @for (i of incidentesFiltrados().slice(0, 10); track i.id) {
+      <div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-200">
+        <div class="flex items-start justify-between gap-2">
+          <span class="text-xs font-bold text-gray-800">{{ i.descripcion }}</span>
+          <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border" [class]="claseSeveridad(i.severidad)">
+            {{ i.severidad }}
+          </span>
         </div>
-        <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2">
-          <div class="bg-rose-500 h-full rounded-full" [style.width.%]="c.porcentaje"></div>
-        </div>
-        <span class="text-[11px] text-gray-500">{{ c.cantidad }} incidentes registrados</span>
+        <p class="text-[11px] text-gray-500 mt-1">
+          <span class="font-mono font-bold text-primary">{{ placaDe(i.busId) }}</span>
+          · {{ etiquetaCategoria(i.categoria) }} · {{ i.fecha }}
+        </p>
       </div>
       }
     </div>
+    <p class="text-[11px] text-gray-500 mt-3">
+      Mostrando {{ incidentesFiltrados().length < 10 ? incidentesFiltrados().length : 10 }} de
+      {{ incidentesFiltrados().length }} incidentes
+    </p>
+    } @else {
+    <p class="py-8 text-center text-sm text-gray-500 border border-dashed border-gray-200 rounded-xl">
+      Sin incidentes para estos filtros
+    </p>
+    }
   </div>
 </div>
