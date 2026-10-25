@@ -29,9 +29,8 @@ export class AuthService {
   // REGISTRO
   // ============================================
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
-    this.logger.log(` Registro solicitado para DPI: ${dto.dpi}`);
+    this.logger.log(`📝 Registro solicitado para DPI: ${dto.dpi}`);
 
-    // 1. Verificar si el DPI ya está registrado
     const existente = await this.prisma.user.findUnique({
       where: { dpi: dto.dpi },
     });
@@ -39,7 +38,6 @@ export class AuthService {
       throw new ConflictException('El DPI ya está registrado');
     }
 
-    // 2. Verificar email si viene
     if (dto.email) {
       const emailExiste = await this.prisma.user.findUnique({
         where: { email: dto.email },
@@ -49,16 +47,14 @@ export class AuthService {
       }
     }
 
-    // 3. Verificar en PNC (mock)
     const pncResult = await this.pncService.verificarAntecedentes(dto.dpi);
     if (pncResult.tieneAntecedentes) {
-      this.logger.warn(` Registro rechazado por antecedentes: ${dto.dpi}`);
+      this.logger.warn(`⚠️ Registro rechazado por antecedentes: ${dto.dpi}`);
       throw new BadRequestException(
         'No se puede completar el registro: el DPI tiene antecedentes penales.',
       );
     }
 
-    // 4. Determinar si es menor de edad
     let esMenor = false;
     let tutorId: string | null = null;
 
@@ -67,7 +63,6 @@ export class AuthService {
       const edad = this.calcularEdad(fechaNac);
       esMenor = edad < 18;
 
-      // Si es menor, requerir tutor
       if (esMenor) {
         if (!dto.tutorDpi) {
           throw new BadRequestException(
@@ -95,10 +90,8 @@ export class AuthService {
       }
     }
 
-    // 5. Hashear contraseña
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
-    // 6. Crear usuario
     const user = await this.prisma.user.create({
       data: {
         dpi: dto.dpi,
@@ -110,27 +103,41 @@ export class AuthService {
         fechaNacimiento: dto.fechaNacimiento ? new Date(dto.fechaNacimiento) : null,
         esMenor,
         tutorId,
-        rol: Role.PASAJERO, // Por defecto pasajero (los roles se asignan internamente)
+        rol: Role.PASAJERO,
         pncStatus: PncStatus.VERIFICADO,
         pncVerificadoEn: pncResult.verificadoEn,
       },
     });
 
-    this.logger.log(` Usuario creado: ${user.dpi}`);
+    this.logger.log(`✅ Usuario creado: ${user.dpi}`);
 
-    // 7. Generar JWT
     return this.buildAuthResponse(user);
   }
 
   // ============================================
-  // LOGIN
+  // LOGIN (Acepta DPI o Email, y 'dpi' o 'identifier')
   // ============================================
   async login(dto: LoginDto): Promise<AuthResponseDto> {
-    this.logger.log(` Login solicitado para DPI: ${dto.dpi}`);
+    // Aceptamos tanto 'dpi' como 'identifier' (que es como Fredy lo manda)
+    const identificador = dto.dpi || dto.identifier;
 
-    // 1. Buscar usuario
-    const user = await this.prisma.user.findUnique({
-      where: { dpi: dto.dpi },
+    if (!identificador) {
+      throw new UnauthorizedException('Debe proporcionar un DPI o correo');
+    }
+
+    // Convertimos a string por si Angular envía el DPI como número (evita el error de validación)
+    const idString = String(identificador);
+
+    this.logger.log(`🔐 Login solicitado para: ${idString}`);
+
+    // Buscar usuario por DPI o Email
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { dpi: idString },
+          { email: idString },
+        ],
+      },
     });
 
     if (!user) {
@@ -141,13 +148,13 @@ export class AuthService {
       throw new UnauthorizedException('Cuenta desactivada');
     }
 
-    // 2. Verificar contraseña
+    // Verificar contraseña
     const passwordOk = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordOk) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    this.logger.log(` Login exitoso: ${user.dpi}`);
+    this.logger.log(`✅ Login exitoso: ${user.dpi}`);
 
     return this.buildAuthResponse(user);
   }
