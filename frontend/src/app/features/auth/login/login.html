@@ -1,106 +1,742 @@
-<h2 class="text-2xl font-bold text-gray-800 mb-1">Iniciar sesión</h2>
-<p class="text-sm text-gray-500 mb-5">Ingresa con tu DPI o correo</p>
+<!-- Landing Page & Portal Principal RutaBus GT -->
+<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
 
-<form (ngSubmit)="onSubmit()" class="space-y-3">
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      DPI o correo
-    </label>
-    <input
-      type="text"
-      [value]="dpi"
-      (input)="onDpiInput($event)"
-      name="dpi"
-      placeholder="1234567890101"
-      maxlength="13"
-      inputmode="numeric"
-      autocomplete="username"
-      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-    />
-  </div>
+  <!-- ========================================================================= -->
+  <!-- 1. NAVBAR SUPERIOR FIJO (Práctica estándar: Login en esquina superior derecha) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
 
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      Contraseña
-    </label>
-    <input
-      type="password"
-      [(ngModel)]="password"
-      name="password"
-      placeholder="••••••••"
-      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-    />
-  </div>
+      <!-- Logo y Marca -->
+      <a routerLink="/auth/login" class="flex items-center gap-3 group focus:outline-none">
+        <div class="w-11 h-11 rounded-xl bg-blue-900 p-2 shadow-md shadow-blue-950/20 group-hover:scale-105 transition-transform flex items-center justify-center">
+          <img src="/icons/logo-a.svg" alt="RutaBus GT Logo" class="w-full h-full object-contain" />
+        </div>
+        <div>
+          <span class="text-xl font-extrabold text-blue-950 tracking-tight flex items-center gap-1.5">
+            RutaBus <span class="text-blue-600 font-black">GT</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">Sur</span>
+          </span>
+          <p class="text-[11px] text-slate-500 font-medium">Amatitlán · Villa Nueva · Mixco · Petapa</p>
+        </div>
+      </a>
 
-  @if (error()) {
-    <div class="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg">
-      {{ error() }}
+      <!-- Menú de Navegación de Secciones (Desktop) -->
+      <nav class="hidden md:flex items-center gap-1 lg:gap-2">
+        <button
+          (click)="scrollToSection('rutas')"
+          class="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-100/80 transition cursor-pointer"
+        >
+          Rutas Disponibles
+        </button>
+        <button
+          (click)="scrollToSection('servicios')"
+          class="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-100/80 transition cursor-pointer"
+        >
+          Servicios
+        </button>
+        <button
+          (click)="scrollToSection('promociones')"
+          class="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-100/80 transition cursor-pointer"
+        >
+          Promociones
+        </button>
+        <button
+          (click)="scrollToSection('nosotros')"
+          class="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-100/80 transition cursor-pointer"
+        >
+          Acerca de Nosotros
+        </button>
+      </nav>
+
+      <!-- Esquina Superior Derecha: Botón Estándar de Iniciar Sesión y Registro -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <a
+          routerLink="/auth/register"
+          class="hidden sm:inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold text-blue-950 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition border border-slate-200"
+        >
+          Crear cuenta
+        </a>
+
+        <!-- Botón Destacado: INICIAR SESIÓN -->
+        <button
+          (click)="openLoginModal()"
+          class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-950/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+          title="Abrir formulario de inicio de sesión"
+        >
+          <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          <span>Iniciar Sesión</span>
+        </button>
+      </div>
+
     </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. HERO SECTION CON LLAMADOS DE ACCIÓN Y MÉTRICAS -->
+  <!-- ========================================================================= -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-blue-950 via-slate-900 to-blue-900 text-white py-16 sm:py-24">
+    <!-- Efectos visuales de fondo -->
+    <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    <div class="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+
+        <!-- Texto principal -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-blue-200 backdrop-blur">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Sistema de Transporte Inteligente Metropolitano Sur
+          </div>
+
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.15]">
+            Viaja puntual, seguro y <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-200 to-white">100% conectado</span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed mx-auto lg:mx-0">
+            Conectamos <strong class="text-white font-semibold">Amatitlán, Villa Nueva, San Miguel Petapa, Mixco y Zona 12</strong> con monitoreo GPS en vivo, pagos digitales con QR y unidades monitoreadas las 24 horas.
+          </p>
+
+          <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
+            <!-- CTA: Iniciar sesión -->
+            <button
+              (click)="openLoginModal()"
+              class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-500/25 hover:shadow-2xl transition transform hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Acceder a la Plataforma</span>
+            </button>
+
+            <!-- CTA: Explorar rutas -->
+            <button
+              (click)="scrollToSection('rutas')"
+              class="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 backdrop-blur transition flex items-center gap-2 cursor-pointer"
+            >
+              <span>Explorar Rutas y Horarios</span>
+              <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Métricas en línea -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-white/10">
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-white">50+</p>
+              <p class="text-xs text-slate-400 font-medium">Buses en servicio</p>
+            </div>
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-emerald-400">98.4%</p>
+              <p class="text-xs text-slate-400 font-medium">Puntualidad en ruta</p>
+            </div>
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-amber-300">Q 5.00</p>
+              <p class="text-xs text-slate-400 font-medium">Tarifa desde</p>
+            </div>
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-blue-300">24/7</p>
+              <p class="text-xs text-slate-400 font-medium">Monitoreo GPS</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta Visual Ilustrativa del Servicio -->
+        <div class="lg:col-span-5">
+          <div class="bg-gradient-to-b from-white/15 to-white/5 border border-white/20 rounded-3xl p-6 sm:p-7 backdrop-blur-xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-white/15">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-lg">
+                  🚍
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Telemetría en Vivo</h3>
+                  <p class="text-xs text-slate-300">Corredor Amatitlán – Villa Nueva</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+                EN RUTA
+              </span>
+            </div>
+
+            <!-- Datos simulados de la unidad -->
+            <div class="space-y-3.5 my-5">
+              <div class="bg-white/10 rounded-xl p-3 flex items-center justify-between">
+                <span class="text-xs text-slate-300">Próxima Salida:</span>
+                <span class="text-xs font-bold text-white">05:00 AM (en 6 min)</span>
+              </div>
+              <div class="bg-white/10 rounded-xl p-3 flex items-center justify-between">
+                <span class="text-xs text-slate-300">Validación de Abordaje:</span>
+                <span class="text-xs font-bold text-cyan-300">Código QR / Billetera Digital</span>
+              </div>
+              <div class="bg-white/10 rounded-xl p-3 flex items-center justify-between">
+                <span class="text-xs text-slate-300">Seguridad Activa:</span>
+                <span class="text-xs font-bold text-emerald-300">✓ Chofer Verificado y Certificado</span>
+              </div>
+            </div>
+
+            <button
+              (click)="openLoginModal()"
+              class="w-full py-3 rounded-xl bg-white text-blue-950 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition text-center shadow-lg"
+            >
+              Comprar Boleto o Reservar
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 3. SECCIÓN: RUTAS DISPONIBLES -->
+  <!-- ========================================================================= -->
+  <section id="rutas" class="py-16 sm:py-24 bg-white scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Encabezado de Sección -->
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+          Cobertura y Horarios
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Rutas Disponibles en Tiempo Real
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
+          Nuestras líneas interconectan los principales puntos de estudio, trabajo y comercio del sur del departamento de Guatemala con frecuencias continuas.
+        </p>
+
+        <!-- Filtros rápidos de rutas -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mt-6">
+          <button
+            (click)="filtrarRutas('TODAS')"
+            [class]="tipoRutaSeleccionado() === 'TODAS' ? 'bg-blue-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Todas las Rutas ({{ rutas.length }})
+          </button>
+          <button
+            (click)="filtrarRutas('EXPRESO')"
+            [class]="tipoRutaSeleccionado() === 'EXPRESO' ? 'bg-blue-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Expresos
+          </button>
+          <button
+            (click)="filtrarRutas('TRONCAL')"
+            [class]="tipoRutaSeleccionado() === 'TRONCAL' ? 'bg-blue-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Troncales
+          </button>
+          <button
+            (click)="filtrarRutas('INTERURBANO')"
+            [class]="tipoRutaSeleccionado() === 'INTERURBANO' ? 'bg-blue-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Interurbanos
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Rutas -->
+      <div class="grid md:grid-cols-2 gap-6">
+        @for (ruta of rutasFiltradas; track ruta.id) {
+        <div class="bg-slate-50 hover:bg-white rounded-2xl p-6 border border-slate-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full border {{ ruta.badgeColor }}">
+                {{ ruta.codigo }} · {{ ruta.tipo }}
+              </span>
+              <span class="text-lg font-black text-blue-900">
+                {{ ruta.tarifa }}
+              </span>
+            </div>
+
+            <h3 class="text-lg font-bold text-slate-900 leading-snug mb-3">
+              {{ ruta.nombre }}
+            </h3>
+
+            <!-- Trayecto origen y destino -->
+            <div class="space-y-2 py-3 border-y border-slate-200/80 my-3 text-xs text-slate-700">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="font-semibold text-slate-900">Origen:</span>
+                <span>{{ ruta.origen }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="font-semibold text-slate-900">Destino:</span>
+                <span>{{ ruta.destino }}</span>
+              </div>
+            </div>
+
+            <!-- Datos operativos -->
+            <div class="grid grid-cols-3 gap-2 text-center py-2 bg-white rounded-xl border border-slate-200/60 mb-4">
+              <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">Frecuencia</p>
+                <p class="text-xs font-bold text-slate-800">{{ ruta.frecuencia }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">Horario</p>
+                <p class="text-xs font-bold text-slate-800">{{ ruta.horario }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">Tiempo Aprox.</p>
+                <p class="text-xs font-bold text-blue-700">{{ ruta.duracionAprox }}</p>
+              </div>
+            </div>
+
+            <!-- Paradas destacadas -->
+            <div class="mb-4">
+              <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Paradas Clave:</p>
+              <div class="flex flex-wrap gap-1.5">
+                @for (parada of ruta.paradas; track parada) {
+                <span class="text-[11px] bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded-md">
+                  📍 {{ parada }}
+                </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <button
+            (click)="openLoginModal()"
+            class="w-full mt-2 py-2.5 rounded-xl bg-slate-900 hover:bg-blue-900 text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Ver Mapa y Reservar Asiento</span>
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+        }
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 4. SECCIÓN: DEMÁS SERVICIOS QUE OFRECEMOS -->
+  <!-- ========================================================================= -->
+  <section id="servicios" class="py-16 sm:py-24 bg-slate-100/70 border-y border-slate-200 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          Tecnología y Confort
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Demás Servicios que Ofrecemos
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
+          Diseñamos cada función para que tu experiencia de viaje sea fluida, segura y libre de preocupaciones.
+        </p>
+      </div>
+
+      <!-- Cuadrícula de Servicios -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (servicio of servicios; track servicio.id) {
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs hover:shadow-lg hover:border-slate-300 transition duration-300">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-3xl">{{ servicio.icono }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+              {{ servicio.tag }}
+            </span>
+          </div>
+          <h3 class="text-base font-bold text-slate-900 mb-2">
+            {{ servicio.titulo }}
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            {{ servicio.descripcion }}
+          </p>
+        </div>
+        }
+      </div>
+
+      <!-- Alianzas y Métodos de Pago Aceptados -->
+      <div class="mt-14 bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 text-center">
+        <p class="text-xs uppercase font-extrabold tracking-widest text-slate-400 mb-4">
+          Alianzas de Pago Digital y Recargas Seguras
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+          @for (partner of paymentPartners; track partner.name) {
+          <div class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200/60 rounded-xl px-4 hover:scale-105 transition-transform">
+            <img [src]="partner.iconPath" [alt]="partner.name" class="w-7 h-7 object-contain" />
+            <span class="text-xs font-bold text-slate-700">{{ partner.name }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 5. SECCIÓN: PROMOCIONES Y BENEFICIOS REUBICADAS -->
+  <!-- ========================================================================= -->
+  <section id="promociones" class="py-16 sm:py-24 bg-white scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-bold uppercase tracking-widest text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+          Beneficios Exclusivos
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Promociones para Pasajeros
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
+          Aprovecha descuentos especiales, alianzas con comercios locales y bonificaciones por recargas frecuentes.
+        </p>
+      </div>
+
+      <!-- Tarjetas de Promociones Reubicadas -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        @for (promo of promociones; track promo.id) {
+        <div class="rounded-2xl overflow-hidden shadow-lg border {{ promo.borderGradiente }} bg-gradient-to-br {{ promo.bgGradiente }} text-white p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl">{{ promo.icono }}</span>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur px-2.5 py-0.5 rounded-full">
+                {{ promo.tag }}
+              </span>
+            </div>
+
+            <h3 class="text-lg font-black leading-snug mb-2">
+              {{ promo.titulo }}
+            </h3>
+
+            <p class="text-xs text-white/90 leading-relaxed mb-4">
+              {{ promo.subtitulo }}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-white/20 space-y-2">
+            <div class="flex items-center justify-between text-[11px] text-white/80">
+              <span>Vigencia:</span>
+              <span class="font-semibold text-white">{{ promo.vigencia }}</span>
+            </div>
+            @if (promo.codigoPromo) {
+            <div class="bg-black/20 rounded-lg p-1.5 text-center">
+              <span class="text-[10px] uppercase font-mono tracking-widest font-bold text-amber-200">
+                Código: {{ promo.codigoPromo }}
+              </span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 6. SECCIÓN: ACERCA DE NOSOTROS -->
+  <!-- ========================================================================= -->
+  <section id="nosotros" class="py-16 sm:py-24 bg-slate-900 text-white scroll-mt-20 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+
+        <div class="lg:col-span-6 space-y-6">
+          <span class="text-xs font-bold uppercase tracking-widest text-blue-400 bg-blue-900/60 px-3 py-1 rounded-full border border-blue-700/60">
+            Nuestra Historia y Misión
+          </span>
+
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+            Transformando el Transporte en el Sur de Guatemala
+          </h2>
+
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            <strong class="text-white font-semibold">RutaBus GT</strong> nació como una iniciativa tecnológica para responder a la necesidad histórica de los vecinos de Amatitlán, Villa Nueva, San Miguel Petapa y Mixco de contar con un transporte digno, predecible y seguro.
+          </p>
+
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Combinamos una flota moderna de unidades acondicionadas con telemetría GPS satelital, validadores QR inteligentes y un equipo de conductores profesionalizados, certificados y con verificación de identidad oficial.
+          </p>
+
+          <!-- Pilares Institucionales -->
+          <div class="grid sm:grid-cols-2 gap-4 pt-2">
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p class="text-sm font-bold text-blue-300 mb-1">🛡️ Seguridad Ciudadana</p>
+              <p class="text-xs text-slate-300">Unidades monitoreadas con botón de alerta y conductores certificados.</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p class="text-sm font-bold text-emerald-300 mb-1">⏱️ Puntualidad y Respeto</p>
+              <p class="text-xs text-slate-300">Frecuencias cronometradas para que nunca pierdas tu tiempo.</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p class="text-sm font-bold text-amber-300 mb-1">💳 Tecnología Accesible</p>
+              <p class="text-xs text-slate-300">Tarifas justas y transparentes con pago 100% digital o en efectivo.</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p class="text-sm font-bold text-purple-300 mb-1">🚍 Flota Limpia y Cómoda</p>
+              <p class="text-xs text-slate-300">Mantenimiento preventivo diario y climatización en cada unidad.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cobertura y Compromiso Social -->
+        <div class="lg:col-span-6 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md">
+          <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span>📍 Corredor Operativo Autorizado</span>
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
+            Operamos con licencias intermunicipales autorizadas, brindando servicio a más de 15,000 personas diariamente entre las terminales de Amatitlán, Villa Nueva, CENMA, El Trébol, USAC y San Cristóbal.
+          </p>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <span class="text-xs font-semibold text-white">Centro de Operaciones Amatitlán</span>
+              <span class="text-xs text-blue-300 font-mono">Terminal Sur km 28</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <span class="text-xs font-semibold text-white">Estación de Transferencia Villa Nueva</span>
+              <span class="text-xs text-blue-300 font-mono">Calzada Concepción</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <span class="text-xs font-semibold text-white">Central de Enlace Ciudad Capital</span>
+              <span class="text-xs text-blue-300 font-mono">El Trébol / USAC Zona 12</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-400">Atención Ciudadana y Soporte:</p>
+              <p class="text-sm font-bold text-white">PBX: (502) 2300-RUTA (7882)</p>
+            </div>
+            <button
+              (click)="openLoginModal()"
+              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition"
+            >
+              Iniciar Sesión
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 7. FOOTER INSTITUCIONAL -->
+  <!-- ========================================================================= -->
+  <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <img src="/icons/logo-a.svg" alt="RutaBus GT" class="w-6 h-6 object-contain" />
+            <span class="text-sm font-bold text-white">RutaBus GT</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed text-[11px]">
+            El sistema moderno de transporte para Amatitlán y el departamento de Guatemala.
+          </p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase text-white mb-3">Accesos Rápidos</p>
+          <ul class="space-y-1.5 text-[11px]">
+            <li><button (click)="scrollToSection('rutas')" class="hover:text-white transition">Rutas y Horarios</button></li>
+            <li><button (click)="scrollToSection('servicios')" class="hover:text-white transition">Nuestros Servicios</button></li>
+            <li><button (click)="scrollToSection('promociones')" class="hover:text-white transition">Promociones</button></li>
+            <li><button (click)="scrollToSection('nosotros')" class="hover:text-white transition">Acerca de Nosotros</button></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase text-white mb-3">Cuenta y Acceso</p>
+          <ul class="space-y-1.5 text-[11px]">
+            <li><button (click)="openLoginModal()" class="hover:text-white transition">Iniciar Sesión</button></li>
+            <li><a routerLink="/auth/register" class="hover:text-white transition">Crear Cuenta Pasajero</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase text-white mb-3">Seguridad y Normas</p>
+          <p class="text-[11px] text-slate-400 leading-relaxed mb-2">
+            Sistema regulado y coordinado con las autoridades de tránsito y transporte metropolitano.
+          </p>
+          <span class="inline-block px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 text-[10px]">
+            🇬🇹 Guatemala, C.A.
+          </span>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
+        <p>© {{ currentYear }} RutaBus GT · Todos los derechos reservados.</p>
+        <p class="text-slate-500">Diseño y Tecnología para el Transporte Metropolitano del Sur.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- 8. MODAL DE LOGIN (Activado por botón en esquina superior derecha) -->
+  <!-- ========================================================================= -->
+  @if (isLoginModalOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
+    (click)="closeLoginModal()"
+  >
+    <!-- Contenedor del Modal (previene cerrar si se hace clic adentro) -->
+    <div
+      class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative animate-scale-up"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Botón de Cerrar Modal (X) -->
+      <button
+        (click)="closeLoginModal()"
+        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer z-10"
+        title="Cerrar ventana"
+      >
+        <span class="text-lg font-bold leading-none">&times;</span>
+      </button>
+
+      <!-- Encabezado del Modal -->
+      <div class="bg-gradient-to-r from-blue-950 to-blue-900 p-6 sm:p-7 text-white text-center relative">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-white/10 backdrop-blur p-2 border border-white/20 flex items-center justify-center">
+          <img src="/icons/logo-a.svg" alt="RutaBus GT" class="w-full h-full object-contain" />
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight">Iniciar Sesión</h2>
+        <p class="text-xs text-blue-200 mt-1">Ingresa a tu cuenta de RutaBus GT</p>
+      </div>
+
+      <!-- Cuerpo del Formulario de Login -->
+      <div class="p-6 sm:p-8">
+        <form (ngSubmit)="onSubmit()" class="space-y-4">
+          <!-- DPI o Correo -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              DPI o Correo Registrado
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                [value]="dpi"
+                (input)="onDpiInput($event)"
+                name="dpi"
+                placeholder="Ej. 1234567890101"
+                maxlength="13"
+                inputmode="numeric"
+                autocomplete="username"
+                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition bg-slate-50/50"
+              />
+              <span class="absolute left-3.5 top-3.5 text-slate-400 text-sm">🪪</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">Ingresa los 13 dígitos de tu DPI</p>
+          </div>
+
+          <!-- Contraseña -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Contraseña
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="••••••••"
+                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition bg-slate-50/50"
+              />
+              <span class="absolute left-3.5 top-3.5 text-slate-400 text-sm">🔒</span>
+            </div>
+          </div>
+
+          <!-- Mensaje de error reactivo -->
+          @if (error()) {
+          <div class="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{{ error() }}</span>
+          </div>
+          }
+
+          <!-- Botón de Ingreso con Feedback de Carga -->
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="w-full py-3.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-sm shadow-md shadow-blue-950/20 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            @if (loading()) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Ingresando al sistema...</span>
+            } @else {
+              <span>Ingresar</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            }
+          </button>
+        </form>
+
+        <!-- Divisor Social -->
+        <div class="flex items-center gap-3 my-5">
+          <div class="flex-1 h-px bg-slate-200"></div>
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">O accede con</span>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+
+        <!-- Botones de Redes Sociales -->
+        <div class="grid grid-cols-3 gap-2.5">
+          <button
+            type="button"
+            (click)="socialLogin('google')"
+            class="flex items-center justify-center gap-1.5 bg-white border border-slate-300 rounded-xl py-2.5 hover:bg-slate-50 transition cursor-pointer"
+            title="Ingresar con Google"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span class="text-xs font-semibold text-slate-700">Google</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="socialLogin('facebook')"
+            class="flex items-center justify-center gap-1.5 bg-white border border-slate-300 rounded-xl py-2.5 hover:bg-slate-50 transition cursor-pointer"
+            title="Ingresar con Facebook"
+          >
+            <svg class="w-4 h-4" fill="#1877F2" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span class="text-xs font-semibold text-slate-700">Facebook</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="socialLogin('apple')"
+            class="flex items-center justify-center gap-1.5 bg-white border border-slate-300 rounded-xl py-2.5 hover:bg-slate-50 transition cursor-pointer"
+            title="Ingresar con Apple"
+          >
+            <svg class="w-4 h-4" fill="#000" viewBox="0 0 24 24">
+              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            <span class="text-xs font-semibold text-slate-700">Apple</span>
+          </button>
+        </div>
+
+        <!-- Registro Link -->
+        <p class="text-center text-xs text-slate-500 mt-6 pt-4 border-t border-slate-100">
+          ¿Aún no tienes cuenta en RutaBus?
+          <a
+            routerLink="/auth/register"
+            (click)="closeLoginModal()"
+            class="text-blue-700 font-bold hover:underline ml-1"
+          >
+            Regístrate aquí
+          </a>
+        </p>
+      </div>
+
+    </div>
+  </div>
   }
 
-  <button
-  type="submit"
-  [disabled]="loading()"
-  class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
->
-  @if (loading()) {
-    Ingresando...
-  } @else {
-    Iniciar sesión
-    <svg lucideArrowRight class="w-[18px] h-[18px]"></svg>
-  }
-</button>
-</form>
-
-<!-- Divisor -->
-<div class="flex items-center gap-3 my-5">
-  <div class="flex-1 h-px bg-gray-200"></div>
-  <span class="text-xs text-gray-400">o continúa con</span>
-  <div class="flex-1 h-px bg-gray-200"></div>
 </div>
-
-<!-- Social login -->
-<div class="grid grid-cols-3 gap-2">
-  <button
-    type="button"
-    (click)="socialLogin('google')"
-    class="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg py-2.5 hover:bg-gray-50 transition"
-  >
-    <svg class="w-5 h-5" viewBox="0 0 24 24">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-    </svg>
-    <span class="text-xs font-medium text-gray-700">Google</span>
-  </button>
-
-  <button
-    type="button"
-    (click)="socialLogin('facebook')"
-    class="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg py-2.5 hover:bg-gray-50 transition"
-  >
-    <svg class="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-    </svg>
-    <span class="text-xs font-medium text-gray-700">Facebook</span>
-  </button>
-
-  <button
-    type="button"
-    (click)="socialLogin('apple')"
-    class="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg py-2.5 hover:bg-gray-50 transition"
-  >
-    <svg class="w-5 h-5" fill="#000" viewBox="0 0 24 24">
-      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-    </svg>
-    <span class="text-xs font-medium text-gray-700">Apple</span>
-  </button>
-</div>
-
-<p class="text-center text-sm text-gray-500 mt-5">
-  ¿No tienes cuenta?
-  <a routerLink="/auth/register" class="text-primary font-semibold hover:underline">
-    Regístrate
-  </a>
-</p>

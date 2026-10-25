@@ -10,17 +10,82 @@
       </p>
     </div>
 
-    <button
-      (click)="openNewBusModal()"
-      class="px-4 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
-    >
-      <span>+ Registrar Nueva Unidad</span>
-    </button>
+    <div class="flex items-center gap-2">
+      <button
+        (click)="refresh()"
+        class="px-3 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+        title="Recargar unidades desde la base de datos"
+      >
+        <span>🔄</span>
+        <span>Actualizar</span>
+      </button>
+
+      <button
+        (click)="openNewBusModal()"
+        class="px-4 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 w-fit cursor-pointer"
+      >
+        <span>+ Registrar Nueva Unidad</span>
+      </button>
+    </div>
   </div>
+
+  <!-- Barra de Filtros, Búsqueda y Contador -->
+  <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+    <!-- Buscador -->
+    <div class="relative w-full sm:w-72">
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Buscar por placa o modelo..."
+        class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+      />
+      <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
+    </div>
+
+    <!-- Filtros de Estado -->
+    <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+      <button
+        (click)="estadoFilter.set('TODOS')"
+        [class]="estadoFilter() === 'TODOS' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
+      >
+        Todos ({{ buses().length }})
+      </button>
+      <button
+        (click)="estadoFilter.set('ACTIVO')"
+        [class]="estadoFilter() === 'ACTIVO' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
+      >
+        Activos
+      </button>
+      <button
+        (click)="estadoFilter.set('MANTENIMIENTO')"
+        [class]="estadoFilter() === 'MANTENIMIENTO' ? 'bg-amber-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
+      >
+        Mantenimiento
+      </button>
+      <button
+        (click)="estadoFilter.set('FUERA_SERVICIO')"
+        [class]="estadoFilter() === 'FUERA_SERVICIO' ? 'bg-rose-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
+      >
+        Fuera de Servicio
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-8">
+      <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-gray-500 mt-2">Cargando flota desde la base de datos...</p>
+    </div>
+  }
 
   <!-- Grid de Unidades de la Flota -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    @for (bus of buses(); track bus.id) {
+    @for (bus of filteredBuses(); track bus.id) {
       <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-blue-200 transition-all flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-3">

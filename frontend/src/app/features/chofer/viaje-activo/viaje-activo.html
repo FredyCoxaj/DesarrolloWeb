@@ -1,4 +1,15 @@
 <div class="space-y-6">
+  <!-- Mensaje de Notificación de Viaje -->
+  @if (tripActionMsg()) {
+    <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold flex items-center justify-between shadow-sm animate-fade-in">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🚀</span>
+        <span>{{ tripActionMsg() }}</span>
+      </div>
+      <button (click)="tripActionMsg.set(null)" class="text-emerald-700 hover:text-emerald-900 font-bold text-sm cursor-pointer">✕</button>
+    </div>
+  }
+
   <!-- Tarjeta Superior: Estado del Viaje y Controles (F4) - Modo Claro -->
   <div class="bg-white border border-blue-100 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
     <div class="absolute -right-8 -top-8 w-36 h-36 bg-blue-50 rounded-full pointer-events-none"></div>
@@ -34,19 +45,33 @@
       <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         @if (trip().estado === 'PROGRAMADO') {
           <button
+            id="btn-iniciar-viaje"
             (click)="iniciarViaje()"
-            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer animate-pulse ring-2 ring-emerald-400/50"
           >
-            <span>▶ Iniciar Viaje</span>
+            <span class="text-sm">▶</span>
+            <span>Iniciar Viaje</span>
           </button>
         }
 
         @if (trip().estado === 'EN_CURSO') {
           <button
+            id="btn-finalizar-viaje"
             (click)="finalizarViaje()"
             class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>⏹ Finalizar Viaje</span>
+          </button>
+        }
+
+        @if (trip().estado === 'FINALIZADO') {
+          <button
+            id="btn-iniciar-nuevo-viaje"
+            (click)="openNewTripModal()"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <span class="text-sm">▶</span>
+            <span>Iniciar Nuevo Viaje</span>
           </button>
         }
 
@@ -58,6 +83,43 @@
         </button>
       </div>
     </div>
+
+    <!-- Banner informativo de estado del viaje -->
+    @if (trip().estado === 'PROGRAMADO') {
+      <div class="mt-4 p-3 bg-blue-50/80 border border-blue-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900 relative z-10">
+        <div class="flex items-center gap-2.5">
+          <span class="text-lg">🕒</span>
+          <div>
+            <span class="font-bold">Viaje programado en espera de salida.</span>
+            <span class="text-blue-700 block sm:inline"> Unidad lista en terminal. Presiona "Iniciar Viaje" para comenzar el recorrido y activar el rastreo en tiempo real.</span>
+          </div>
+        </div>
+        <button
+          (click)="iniciarViaje()"
+          class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+        >
+          <span>▶ Iniciar Viaje Ahora</span>
+        </button>
+      </div>
+    }
+
+    @if (trip().estado === 'FINALIZADO') {
+      <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-gray-700 relative z-10">
+        <div class="flex items-center gap-2.5">
+          <span class="text-lg">🏁</span>
+          <div>
+            <span class="font-bold text-gray-900">Este viaje ha finalizado con éxito.</span>
+            <span class="text-gray-500 block sm:inline"> Los pasajeros descendieron y los datos se guardaron en tu historial de turno.</span>
+          </div>
+        </div>
+        <button
+          (click)="openNewTripModal()"
+          class="px-4 py-2 bg-primary hover:bg-blue-900 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+        >
+          <span>▶ Iniciar Nuevo Viaje</span>
+        </button>
+      </div>
+    }
 
     <!-- Métricas en Vivo / Telemetría (F4) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-gray-100 relative z-10">
@@ -485,6 +547,89 @@
           class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer"
         >
           Enviar Reporte
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Iniciar Nuevo Viaje (F4) -->
+@if (showNewTripModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-gray-200 animate-slide-up">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-2.5">
+          <span class="p-2 rounded-xl bg-blue-50 text-primary text-base">🚍</span>
+          <div>
+            <h3 class="text-base font-bold text-gray-900">Iniciar Nuevo Viaje</h3>
+            <p class="text-xs text-gray-500">Selecciona el trayecto para tu siguiente recorrido</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="closeNewTripModal()"
+          class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-3 mb-5">
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Rutas disponibles para iniciar:</label>
+        @for (r of availableRoutesForTrip; track r.id) {
+          <label
+            class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all"
+            [class.bg-blue-50]="selectedRouteForNewTrip === r.id"
+            [class.border-primary]="selectedRouteForNewTrip === r.id"
+            [class.ring-2]="selectedRouteForNewTrip === r.id"
+            [class.ring-primary/20]="selectedRouteForNewTrip === r.id"
+            [class.border-gray-200]="selectedRouteForNewTrip !== r.id"
+          >
+            <div class="flex items-center gap-2.5">
+              <input
+                type="radio"
+                name="routeChoice"
+                [value]="r.id"
+                [(ngModel)]="selectedRouteForNewTrip"
+                class="text-primary focus:ring-primary"
+              />
+              <div>
+                <div class="text-xs font-bold text-gray-900">{{ r.nombre }}</div>
+                <div class="text-[11px] text-gray-500">{{ r.origen }} → {{ r.destino }}</div>
+              </div>
+            </div>
+            <span class="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              {{ r.tarifa }}
+            </span>
+          </label>
+        }
+
+        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs text-gray-600 mt-3">
+          <div class="flex justify-between mb-1">
+            <span>Unidad asignada:</span>
+            <strong class="text-primary font-mono">{{ trip().busPlaca }}</strong>
+          </div>
+          <div class="flex justify-between">
+            <span>Salida estimada:</span>
+            <strong class="text-gray-800">Inmediata (en tiempo real)</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="closeNewTripModal()"
+          class="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarNuevoViaje()"
+          class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+        >
+          <span>▶ Iniciar Viaje</span>
         </button>
       </div>
     </div>

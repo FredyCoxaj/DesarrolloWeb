@@ -1,19 +1,20 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { RoleSwitcher } from '../../shared/components/role-switcher/role-switcher';
 import { GpsService } from '../../core/services/gps.service';
 import { ChoferService } from '../../core/services/chofer.service';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-chofer-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, RoleSwitcher],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './chofer-layout.html',
   styleUrl: './chofer-layout.scss',
 })
 export class ChoferLayout {
   private gps = inject(GpsService);
   private choferService = inject(ChoferService);
+  private auth = inject(Auth);
 
   readonly chofer = this.choferService.choferProfile;
   readonly activeTrip = this.choferService.activeTrip;
@@ -25,4 +26,8 @@ export class ChoferLayout {
     { label: 'Historial', icon: '📋', path: '/chofer/historial' },
     { label: 'Mi Perfil', icon: '👨‍✈️', path: '/chofer/perfil' },
   ];
+
+  logout() {
+    this.auth.logout();
+  }
 }

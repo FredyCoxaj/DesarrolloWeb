@@ -1,92 +1,153 @@
-<h2 class="text-2xl font-bold text-gray-800 mb-1">Crear cuenta</h2>
-<p class="text-sm text-gray-500 mb-6">Regístrate con tu DPI guatemalteco</p>
+<div class="min-h-screen relative overflow-hidden bg-gradient-to-b from-blue-950 via-slate-900 to-blue-900 flex flex-col items-center justify-center p-4 py-10 font-sans">
+  <div class="w-full max-w-md">
 
-<form (ngSubmit)="onSubmit()" class="space-y-4">
+    <!-- Encabezado con navegación de regreso -->
+    <div class="text-center mb-6">
+      <a routerLink="/auth/login" class="inline-flex items-center gap-1.5 text-blue-200 hover:text-white text-xs mb-3 font-semibold transition">
+        <span>← Volver al portal principal</span>
+      </a>
+      <div class="w-14 h-14 mx-auto mb-2 rounded-2xl bg-white/10 backdrop-blur p-2 border border-white/20 flex items-center justify-center">
+        <img src="/icons/logo-a.svg" alt="RutaBus GT" class="w-full h-full object-contain" />
+      </div>
+      <h1 class="text-white text-xl font-bold tracking-tight">RutaBus GT</h1>
+      <p class="text-blue-200 text-xs">Amatitlán & Sur</p>
+    </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+    <!-- Tarjeta del formulario de registro -->
+    <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Crear cuenta</h2>
+      <p class="text-sm text-gray-500 mb-6">Regístrate con tu DPI guatemalteco</p>
+
+      <form (ngSubmit)="onSubmit()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             DPI <span class="text-red-500">*</span>
-        </label>
-        <input type="text" [value]="dpi" (input)="onDpiInput($event)" name="dpi" placeholder="1234567890101"
-            maxlength="13" inputmode="numeric" autocomplete="off"
+          </label>
+          <input
+            type="text"
+            [value]="dpi"
+            (input)="onDpiInput($event)"
+            name="dpi"
+            placeholder="1234567890101"
+            maxlength="13"
+            inputmode="numeric"
+            autocomplete="off"
             class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            [class.border-gray-300]="!dpiError && dpiValido" [class.border-red-400]="dpiError"
-            [class.border-green-400]="dpiValido" />
-        @if (dpiError) {
-        <p class="text-xs text-red-500 mt-1">{{ dpiError }}</p>
-        }
-        @if (dpiValido) {
-        <p class="text-xs text-green-600 mt-1">✓ DPI válido</p>
-        }
-    </div>
+            [class.border-gray-300]="!dpiError && dpiValido"
+            [class.border-red-400]="dpiError"
+            [class.border-green-400]="dpiValido"
+          />
+          @if (dpiError) {
+          <p class="text-xs text-red-500 mt-1">{{ dpiError }}</p>
+          }
+          @if (dpiValido) {
+          <p class="text-xs text-green-600 mt-1">✓ DPI válido</p>
+          }
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Nombre completo <span class="text-red-500">*</span>
-        </label>
-        <input type="text" [(ngModel)]="nombre" name="nombre" placeholder="Juan Pérez"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="nombre"
+            name="nombre"
+            placeholder="Juan Pérez"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Apellido <span class="text-red-500">*</span>
-        </label>
-        <input type="text" [(ngModel)]="apellido" name="apellido" placeholder="Pérez"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="apellido"
+            name="apellido"
+            placeholder="Pérez"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Correo <span class="text-red-500">*</span>
-        </label>
-        <input type="email" [(ngModel)]="email" name="email" placeholder="juan@correo.com"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="juan@correo.com"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Teléfono
-        </label>
-        <input type="tel" [(ngModel)]="telefono" name="telefono" placeholder="5555-5555"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="tel"
+            [(ngModel)]="telefono"
+            name="telefono"
+            placeholder="5555-5555"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Fecha de nacimiento <span class="text-red-500">*</span>
-        </label>
-        <input type="date" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="fechaNacimiento"
+            name="fechaNacimiento"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Contraseña <span class="text-red-500">*</span>
-        </label>
-        <input type="password" [(ngModel)]="password" name="password" placeholder="Mínimo 6 caracteres"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-    </div>
+          </label>
+          <input
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Mínimo 6 caracteres"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
 
-    @if (error()) {
-    <div class="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg">
-        {{ error() }}
-    </div>
-    }
-
-    <button type="submit" [disabled]="loading()"
-        class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition disabled:opacity-50">
-        @if (loading()) {
-        Registrando...
-        } @else {
-        Crear cuenta
+        @if (error()) {
+        <div class="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg">
+          {{ error() }}
+        </div>
         }
-    </button>
-</form>
 
-<p class="text-center text-sm text-gray-500 mt-6">
-    ¿Ya tienes cuenta?
-    <a routerLink="/auth/login" class="text-primary font-semibold hover:underline">
-        Inicia sesión
-    </a>
-</p>
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition disabled:opacity-50 cursor-pointer"
+        >
+          @if (loading()) {
+            Registrando...
+          } @else {
+            Crear cuenta
+          }
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        ¿Ya tienes cuenta?
+        <a routerLink="/auth/login" [queryParams]="{ modal: 'login' }" class="text-primary font-semibold hover:underline">
+          Inicia sesión
+        </a>
+      </p>
+    </div>
+
+  </div>
+</div>

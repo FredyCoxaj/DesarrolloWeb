@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BusEstado } from '@prisma/client';
 import { CreateBusDto } from './dto/create-bus.dto';
 import { UpdateBusDto } from './dto/update-bus.dto';
 import { UpdateBusEstadoDto } from './dto/update-bus-estado.dto';
@@ -78,10 +79,15 @@ export class BusesService {
       }
     }
 
-    return this.prisma.bus.update({
+    const { id: _ignoredId, ...updateData } = dto;
+
+    const actualizado = await this.prisma.bus.update({
       where: { id },
-      data: dto,
+      data: updateData,
     });
+
+    this.logger.log(` Bus actualizado: ${actualizado.placa}`);
+    return actualizado;
   }
 
   async cambiarEstado(id: string, dto: UpdateBusEstadoDto) {
@@ -101,7 +107,7 @@ export class BusesService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const bus = await this.findOne(id);
 
     const viajesActivos = await this.prisma.trip.count({
       where: {
@@ -112,12 +118,21 @@ export class BusesService {
 
     if (viajesActivos > 0) {
       throw new BadRequestException(
-        `No se puede eliminar: el bus tiene ${viajesActivos} viaje(s) activo(s)`,
+        `No se puede eliminar: el bus tiene ${viajesActivos} viaje(s) activo(s) en curso o programados`,
       );
     }
 
-    await this.prisma.bus.delete({ where: { id } });
-    this.logger.log(` Bus eliminado: ${id}`);
-    return { message: 'Bus eliminado correctamente' };
+    try {
+      await this.prisma.bus.delete({ where: { id } });
+      this.logger.log(` Bus eliminado: ${id}`);
+      return { message: 'Bus eliminado correctamente de la base de datos' };
+    } catch (err: any) {
+      this.logger.warn(` No se pudo eliminar físicamente el bus ${bus.placa} por registros históricos asociados. Pasando a FUERA_SERVICIO.`);
+      await this.prisma.bus.update({
+        where: { id },
+        data: { estado: BusEstado.FUERA_SERVICIO },
+      });
+      return { message: 'La unidad fue dada de baja operativamente (marcada FUERA_SERVICIO) preservando el historial de viajes.' };
+    }
   }
 }

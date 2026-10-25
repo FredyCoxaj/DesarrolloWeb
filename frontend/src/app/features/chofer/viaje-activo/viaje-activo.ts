@@ -39,6 +39,16 @@ export class ViajeActivo implements AfterViewInit, OnDestroy {
     });
   });
 
+  // Notificaciones y Nuevo Viaje (F4)
+  tripActionMsg = signal<string | null>(null);
+  showNewTripModal = signal<boolean>(false);
+  selectedRouteForNewTrip = 'r1';
+  availableRoutesForTrip = [
+    { id: 'r1', nombre: 'Amatitlán → Villa Nueva', origen: 'Parque Central Amatitlán', destino: 'Centro de Villa Nueva', tarifa: 'Q5.00' },
+    { id: 'r2', nombre: 'Villa Nueva → Zona 12', origen: 'Centro de Villa Nueva', destino: 'Estación Trébol Zona 12', tarifa: 'Q7.50' },
+    { id: 'r3', nombre: 'Amatitlán → Villa Nueva → Mixco', origen: 'Amatitlán', destino: 'Mixco Centro', tarifa: 'Q10.00' },
+  ];
+
   // Modal Cobro en Efectivo (F5)
   showCashModal = signal<boolean>(false);
   cashTargetPassenger = signal<ChoferPassenger | null>(null);
@@ -129,12 +139,31 @@ export class ViajeActivo implements AfterViewInit, OnDestroy {
 
   iniciarViaje() {
     this.choferService.startTrip();
+    this.tripActionMsg.set('¡Viaje iniciado con éxito! Telemetría GPS activada y monitoreo en tiempo real en curso.');
+    setTimeout(() => this.tripActionMsg.set(null), 4000);
   }
 
   finalizarViaje() {
     if (confirm('¿Estás seguro de finalizar este viaje? Los datos se guardarán en tu historial de turno.')) {
       this.choferService.finishTrip();
+      this.tripActionMsg.set('Viaje finalizado. Los datos se han guardado en tu historial.');
+      setTimeout(() => this.tripActionMsg.set(null), 4000);
     }
+  }
+
+  openNewTripModal() {
+    this.showNewTripModal.set(true);
+  }
+
+  closeNewTripModal() {
+    this.showNewTripModal.set(false);
+  }
+
+  confirmarNuevoViaje() {
+    this.choferService.startNewTrip(this.selectedRouteForNewTrip);
+    this.closeNewTripModal();
+    this.tripActionMsg.set('¡Nuevo viaje iniciado en la ruta seleccionada! Monitoreo GPS activo.');
+    setTimeout(() => this.tripActionMsg.set(null), 4000);
   }
 
   // Métodos F5: Cobro en Efectivo

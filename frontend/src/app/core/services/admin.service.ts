@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GpsService } from './gps.service';
+import { Api } from './api';
 import { Bus, Route, AdminAlert, Incident } from '../models';
 
 export interface AdminKpis {
@@ -42,16 +43,38 @@ export interface BusRevenueSummary {
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private gps = inject(GpsService);
+  private api = inject(Api);
 
-  // Lista de Buses para la Flota (F11)
-  readonly buses = signal<Bus[]>([
-    { id: 'b1', placa: 'M-101ABC', capacidad: 40, modelo: 'Mercedes-Benz Sprinter 516', anio: 2022, estado: 'ACTIVO' },
-    { id: 'b2', placa: 'M-202DEF', capacidad: 45, modelo: 'Hino AK 176', anio: 2021, estado: 'ACTIVO' },
-    { id: 'b3', placa: 'M-303GHI', capacidad: 38, modelo: 'Toyota Coaster', anio: 2023, estado: 'ACTIVO' },
-    { id: 'b4', placa: 'M-404JKL', capacidad: 35, modelo: 'Isuzu NPR Bus', anio: 2020, estado: 'MANTENIMIENTO' },
-    { id: 'b5', placa: 'M-505MNO', capacidad: 42, modelo: 'Mercedes-Benz O500', anio: 2022, estado: 'ACTIVO' },
-    { id: 'b6', placa: 'M-606PQR', capacidad: 40, modelo: 'Hino Rainbow', anio: 2019, estado: 'FUERA_SERVICIO' },
-  ]);
+  // Lista de Buses para la Flota conectada a BD
+  readonly buses = signal<Bus[]>([]);
+  readonly loadingBuses = signal<boolean>(false);
+
+  constructor() {
+    this.loadBuses();
+  }
+
+  loadBuses() {
+    this.loadingBuses.set(true);
+    this.api.get<Bus[]>('/buses').subscribe({
+      next: (data) => {
+        this.loadingBuses.set(false);
+        if (data && data.length > 0) {
+          this.buses.set(data);
+          const total = data.length;
+          const activos = data.filter((b) => b.estado === 'ACTIVO').length;
+          this.kpis.update((k) => ({
+            ...k,
+            totalBuses: total,
+            busesActivos: activos,
+          }));
+        }
+      },
+      error: (err) => {
+        this.loadingBuses.set(false);
+        console.error('Error al cargar buses de la base de datos:', err);
+      },
+    });
+  }
 
   // Lista de Choferes para CRUD (F11)
   readonly drivers = signal<AdminDriver[]>([
@@ -129,19 +152,60 @@ export class AdminService {
 
   // Operaciones CRUD Buses (F11)
   addBus(bus: Omit<Bus, 'id'>) {
-    const newBus: Bus = {
-      ...bus,
-      id: `b-${Date.now()}`,
+    const payload = {
+      placa: bus.placa.toUpperCase().trim(),
+      modelo: bus.modelo?.trim() || undefined,
+      marca: bus.marca?.trim() || undefined,
+      anio: bus.anio && bus.anio >= 1990 ? Number(bus.anio) : 2022,
+      capacidad: Number(bus.capacidad) || 40,
+      estado: bus.estado,
     };
-    this.buses.set([...this.buses(), newBus]);
+
+    this.api.post<Bus>('/buses', payload).subscribe({
+      next: (nuevo) => {
+        this.buses.update((list) => [nuevo, ...list]);
+        this.loadBuses();
+      },
+      error: (err) => {
+        console.error('Error al registrar bus en backend:', err);
+        alert(err.message || 'Error al registrar el bus en la base de datos');
+      },
+    });
   }
 
   updateBus(bus: Bus) {
-    this.buses.set(this.buses().map((b) => (b.id === bus.id ? bus : b)));
+    const payload = {
+      placa: bus.placa.toUpperCase().trim(),
+      modelo: bus.modelo?.trim() || undefined,
+      marca: bus.marca?.trim() || undefined,
+      anio: bus.anio && bus.anio >= 1990 ? Number(bus.anio) : 2022,
+      capacidad: Number(bus.capacidad) || 40,
+      estado: bus.estado,
+    };
+
+    this.api.patch<Bus>(`/buses/${bus.id}`, payload).subscribe({
+      next: (actualizado) => {
+        this.buses.update((list) => list.map((b) => (b.id === bus.id ? { ...b, ...actualizado } : b)));
+        this.loadBuses();
+      },
+      error: (err) => {
+        console.error('Error al actualizar bus en backend:', err);
+        alert(err.message || 'Error al actualizar el bus en la base de datos');
+      },
+    });
   }
 
   deleteBus(id: string) {
-    this.buses.set(this.buses().filter((b) => b.id !== id));
+    this.api.delete(`/buses/${id}`).subscribe({
+      next: (res: any) => {
+        this.buses.update((list) => list.filter((b) => b.id !== id));
+        this.loadBuses();
+      },
+      error: (err) => {
+        console.error('Error al dar de baja bus en backend:', err);
+        alert(err.message || 'Error al procesar la baja del bus en la base de datos');
+      },
+    });
   }
 
   // Operaciones CRUD Choferes (F11)

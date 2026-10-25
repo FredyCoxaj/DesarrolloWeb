@@ -9,18 +9,25 @@
       </div>
     </div>
 
-    @if (user()) {
-      <div class="flex items-center gap-2">
-        @if (user()!.pncStatus === 'VERIFICADO') {
-          <span class="bg-green-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1">
-            <svg lucideCircleCheck class="w-3 h-3"></svg>
-            Verificado
-          </span>
-        }
-        <button class="bg-white/20 text-white p-2 rounded-full hover:bg-white/30 transition">
-          <svg lucideSettings class="w-4 h-4"></svg>
-        </button>
-      </div>
-    }
+    <div class="flex items-center gap-2">
+      @if (user() && user()!.pncStatus === 'VERIFICADO') {
+        <span class="bg-green-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1">
+          <svg lucideCircleCheck class="w-3 h-3"></svg>
+          Verificado
+        </span>
+      }
+
+      <!-- Botón Cerrar Sesión -->
+      <button
+        (click)="logout()"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-rose-600/80 border border-white/20 hover:border-rose-400 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
+        title="Cerrar sesión y volver al inicio"
+      >
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span class="text-[11px] font-bold">Salir</span>
+      </button>
+    </div>
   </div>
 </header>

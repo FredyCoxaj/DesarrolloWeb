@@ -90,14 +90,14 @@ export class ChoferService {
     busId: 'b1',
     busPlaca: 'M-101ABC',
     horaSalida: '07:30 AM',
-    estado: 'EN_CURSO',
+    estado: 'PROGRAMADO',
     capacidad: 40,
-    ocupacionActual: 24,
-    etaDestinoMinutos: 18,
-    siguienteParada: 'Mercado Municipal Amatitlán',
+    ocupacionActual: 14,
+    etaDestinoMinutos: 35,
+    siguienteParada: 'Parque Central Amatitlán (En terminal)',
     paradas: [
-      { id: 'cp-1', nombre: 'Parque Central Amatitlán', orden: 1, horaEstimada: '07:30 AM', estado: 'COMPLETADA', pasajerosSuben: 14, pasajerosBajan: 0 },
-      { id: 'cp-2', nombre: 'Mercado Municipal Amatitlán', orden: 2, horaEstimada: '07:42 AM', estado: 'ACTUAL', pasajerosSuben: 10, pasajerosBajan: 2 },
+      { id: 'cp-1', nombre: 'Parque Central Amatitlán', orden: 1, horaEstimada: '07:30 AM', estado: 'ACTUAL', pasajerosSuben: 14, pasajerosBajan: 0 },
+      { id: 'cp-2', nombre: 'Mercado Municipal Amatitlán', orden: 2, horaEstimada: '07:42 AM', estado: 'PENDIENTE', pasajerosSuben: 10, pasajerosBajan: 2 },
       { id: 'cp-3', nombre: 'CA-9 Sur Km 29', orden: 3, horaEstimada: '07:55 AM', estado: 'PENDIENTE', pasajerosSuben: 4, pasajerosBajan: 1 },
       { id: 'cp-4', nombre: 'Entrada Naciones Unidas', orden: 4, horaEstimada: '08:05 AM', estado: 'PENDIENTE', pasajerosSuben: 3, pasajerosBajan: 6 },
       { id: 'cp-5', nombre: 'Pasarela Bárcenas', orden: 5, horaEstimada: '08:14 AM', estado: 'PENDIENTE', pasajerosSuben: 2, pasajerosBajan: 8 },
@@ -139,8 +139,58 @@ export class ChoferService {
     this.activeTrip.set({
       ...current,
       estado: 'EN_CURSO',
+      siguienteParada: current.paradas.length > 1 ? current.paradas[1].nombre : current.siguienteParada,
+      paradas: current.paradas.map((p, idx) => {
+        if (idx === 0) return { ...p, estado: 'COMPLETADA' };
+        if (idx === 1) return { ...p, estado: 'ACTUAL' };
+        return p;
+      }),
     });
     this.gps.setBusTripStatus(current.busId, 'ACTIVO');
+  }
+
+  /**
+   * Inicia o programa un nuevo viaje para el chofer
+   */
+  startNewTrip(rutaId = 'r1') {
+    const rutasDisponibles: Record<string, { rutaNombre: string; origen: string; destino: string }> = {
+      'r1': { rutaNombre: 'Amatitlán → Villa Nueva', origen: 'Parque Central Amatitlán', destino: 'Centro de Villa Nueva' },
+      'r2': { rutaNombre: 'Villa Nueva → Zona 12', origen: 'Centro de Villa Nueva', destino: 'Estación Trébol Zona 12' },
+      'r3': { rutaNombre: 'Amatitlán → Villa Nueva → Mixco', origen: 'Amatitlán', destino: 'Mixco Centro' },
+    };
+    const info = rutasDisponibles[rutaId] || rutasDisponibles['r1'];
+    const now = new Date();
+    const horaSalida = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    this.activeTrip.set({
+      id: `trip-${Date.now()}`,
+      rutaId,
+      rutaNombre: info.rutaNombre,
+      origen: info.origen,
+      destino: info.destino,
+      busId: 'b1',
+      busPlaca: this.choferProfile().busAsignado || 'M-101ABC',
+      horaSalida,
+      estado: 'EN_CURSO',
+      capacidad: 40,
+      ocupacionActual: 18,
+      etaDestinoMinutos: 35,
+      siguienteParada: 'Mercado Municipal Amatitlán',
+      paradas: [
+        { id: `sp-1-${Date.now()}`, nombre: info.origen, orden: 1, horaEstimada: horaSalida, estado: 'COMPLETADA', pasajerosSuben: 18, pasajerosBajan: 0 },
+        { id: `sp-2-${Date.now()}`, nombre: 'Mercado Municipal Amatitlán', orden: 2, horaEstimada: 'En 12 min', estado: 'ACTUAL', pasajerosSuben: 8, pasajerosBajan: 2 },
+        { id: `sp-3-${Date.now()}`, nombre: 'CA-9 Sur Km 29', orden: 3, horaEstimada: 'En 20 min', estado: 'PENDIENTE', pasajerosSuben: 4, pasajerosBajan: 1 },
+        { id: `sp-4-${Date.now()}`, nombre: info.destino, orden: 4, horaEstimada: 'En 35 min', estado: 'PENDIENTE', pasajerosSuben: 0, pasajerosBajan: 27 },
+      ],
+      pasajeros: [
+        { ticketId: `tk-${Math.floor(100 + Math.random() * 900)}`, nombre: 'Jorge David Pérez', asiento: 1, paradaSubida: info.origen, paradaBajada: info.destino, pagoEstado: 'PAGADO', metodoPago: 'DIGITAL', monto: 5.00 },
+        { ticketId: `tk-${Math.floor(100 + Math.random() * 900)}`, nombre: 'María Fernanda Cruz', asiento: 2, paradaSubida: info.origen, paradaBajada: info.destino, pagoEstado: 'PENDIENTE', metodoPago: 'PENDIENTE', monto: 5.00 },
+        { ticketId: `tk-${Math.floor(100 + Math.random() * 900)}`, nombre: 'Rodrigo Gómez', asiento: 3, paradaSubida: info.origen, paradaBajada: 'CA-9 Sur Km 29', pagoEstado: 'PAGADO', metodoPago: 'EFECTIVO', monto: 5.00 },
+        { ticketId: `tk-${Math.floor(100 + Math.random() * 900)}`, nombre: 'Carla Marroquín', asiento: 5, paradaSubida: info.origen, paradaBajada: info.destino, pagoEstado: 'PENDIENTE', metodoPago: 'PENDIENTE', monto: 5.00 },
+        { ticketId: `tk-${Math.floor(100 + Math.random() * 900)}`, nombre: 'Manuel Solares', asiento: 8, paradaSubida: info.origen, paradaBajada: info.destino, pagoEstado: 'PAGADO', metodoPago: 'DIGITAL', monto: 5.00 },
+      ],
+    });
+    this.gps.setBusTripStatus('b1', 'ACTIVO');
   }
 
   /**
